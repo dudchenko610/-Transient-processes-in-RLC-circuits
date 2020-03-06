@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.appbar.AppBarLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_main"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:theme="@style/ToolbarTheme"
+        android:elevation="50dp">
+
+
+
+        <CheckBox
+            android:id="@+id/pencil"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+
+            android:paddingBottom="6dp"
+            android:paddingTop="6dp"
+            android:paddingRight="6dp"
+            android:paddingLeft="6dp"
+
+
+            android:layout_marginRight = "0dp"
+            android:onClick="onWireCreatingMode"
+
+            android:background="@drawable/pencil_button_animation"
+            android:button="@drawable/pencil_button_animation"
+
+            android:layout_gravity="right" />
+
+        <ImageView
+            android:id="@+id/add_element"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+
+            android:paddingBottom="6dp"
+            android:paddingTop="6dp"
+            android:paddingRight="6dp"
+            android:paddingLeft="6dp"
+
+            android:onClick="onAddElement"
+            android:src="@drawable/plus"
+            android:background="@drawable/ripple_effect_main"
+            android:layout_gravity="right" />
+
+        <ImageView
+            android:id="@+id/delete_wire"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+
+            android:paddingBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp"
+
+            android:onClick="onDeleteWire"
+            android:src="@drawable/basketbr"
+            android:background="@drawable/ripple_effect_main"
+            android:layout_gravity="left" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+</com.google.android.material.appbar.AppBarLayout>
