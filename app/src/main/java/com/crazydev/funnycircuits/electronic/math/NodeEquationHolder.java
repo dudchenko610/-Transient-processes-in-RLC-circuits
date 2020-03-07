@@ -24,12 +24,14 @@ public class NodeEquationHolder extends EquationHolder {
                     this.row[j] = -1;
 
                     this.matrixF[this.countersF[j] ++ ][j] = (short) this.indexInArrayList;
+                    this.price ++;
 
                 } else if (branch.nodeB.equals(node)) {
                     // save as '+'
                     this.row[j] = +1;
 
                     this.matrixF[this.countersF[j] ++ ][j] = (short) this.indexInArrayList;
+                    this.price ++;
 
                 } else {
                     //    throw new RuntimeException("Pizdets");
@@ -48,11 +50,16 @@ public class NodeEquationHolder extends EquationHolder {
 
     @Override
     public void setPosition(int index) {
-        super.setPosition(index);
+        if (!this.isSelected) {
 
-        for (int i = 0; i < this.matrix[0].length; i ++) {
-            this.matrix[this.index][i] = this.row[i];
+            this.index      = index;
+            this.isSelected = true;
+
+            for (int i = 0; i < this.matrix[0].length; i ++) {
+                this.matrix[this.index][i] = this.row[i];
+            }
         }
+
 
     }
 }

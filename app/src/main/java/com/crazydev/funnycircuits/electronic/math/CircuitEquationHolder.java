@@ -50,6 +50,7 @@ public class CircuitEquationHolder extends EquationHolder {
                 this.row[j] = resistance;
 
                 this.matrixF[this.countersF[j] ++ ][j] = (short) this.indexInArrayList;
+                this.price ++;
             }
 
 
@@ -63,7 +64,7 @@ public class CircuitEquationHolder extends EquationHolder {
     @Override
     public void recalculate() {
 
-    /*    double eds = 0;
+        double eds = 0;
         DCSource source;
 
         for (Branch b : this.circuit.branches) {
@@ -93,7 +94,20 @@ public class CircuitEquationHolder extends EquationHolder {
         }
 
         this.matrix[this.index][this.row.length - 1] = eds;
-*/
+
+    }
+
+    @Override
+    public void setPosition(int index) {
+        if (!this.isSelected) {
+
+            this.index      = index;
+            this.isSelected = true;
+
+            this.recalculate();
+
+        }
+
     }
 
 

@@ -1,5 +1,7 @@
 package com.crazydev.funnycircuits.electronic.math;
 
+import android.util.Log;
+
 import com.crazydev.funnycircuits.electronic.Branch;
 
 import java.util.ArrayList;
@@ -13,7 +15,8 @@ public abstract class EquationHolder {
     protected short[]   countersF;
     protected short[][] matrixF;
 
-    int index;
+    int index = -1;
+    protected int price;
     protected boolean isSelected = false;
     protected int indexInArrayList = -1;
 
@@ -30,15 +33,21 @@ public abstract class EquationHolder {
 
     }
 
-    public abstract void recalculate();
-
-    public void setPosition(int index) {
-        this.index      = index;
-        this.isSelected = true;
+    public int getPrice() {
+        return this.price;
     }
 
-    public boolean isAppropriative(int index) {
-        return this.row[index] != 0.0;
+    public abstract void recalculate();
+
+    public abstract void setPosition(int index);
+
+    public void show() {
+        String line = "";
+        for (int i = 0; i < this.row.length; i ++) {
+            line += this.row[i] + " ";
+        }
+
+        Log.d("matrixx", line);
     }
 
 }

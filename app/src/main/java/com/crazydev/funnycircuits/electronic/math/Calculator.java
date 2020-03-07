@@ -38,6 +38,8 @@ public class Calculator {
     protected short countersS[];
     protected short matrixS[][];
 
+    protected short takenPositions[];
+
     public Calculator(Graph graph) {
         this.nodes     = new ArrayList<Node>();
         this.branches  = new ArrayList<Branch>();
@@ -60,6 +62,16 @@ public class Calculator {
         this.countersS = new short[this.currentsAmount];
         this.matrixS   = new short[this.currentsAmount][this.currentsAmount];
 
+        this.takenPositions = new short[this.currentsAmount];
+
+        for (int i = 0; i < this.matrixF.length; i ++) {
+
+            for (int j = 0; j < this.matrixF[i].length; j ++) {
+                this.matrixF[i][j] = -1;
+                this.matrixS[i][j] = -1;
+            }
+        }
+
         // Find currents with correct direction
 
         /** 1. Fill up part of matrix with currents**/
@@ -68,24 +80,6 @@ public class Calculator {
 
             this.equations.add(new NodeEquationHolder(this, this.nodes.get(i), i));
 
-       /**     for (int j = 0; j < this.branches.size(); j ++) {
-                branch = this.branches.get(j);
-
-                if (branch.inCircuit) {
-                    if (branch.nodeA.equals(node)) {
-                        // save as '-'
-                        this.upperMatrixReferencePart[i][j] = -1;
-
-                    } else if (branch.nodeB.equals(node)) {
-                        // save as '+'
-                        this.upperMatrixReferencePart[i][j] = +1;
-
-                    } else {
-                    //    throw new RuntimeException("Pizdets");
-                    }
-
-                }
-            }**/
 
         }
 
@@ -94,65 +88,111 @@ public class Calculator {
 
         for (int i = 0; i < graph.circuits.size(); i ++) {
 
-            this.equations.add(new CircuitEquationHolder(this, graph.circuits.get(i), i));
+            this.equations.add(new CircuitEquationHolder(this, graph.circuits.get(i), i + this.nodesAmount - 1));
 
-        /**    double eds = 0;
-
-            for (Branch b : circuit.branches) {
-
-                int signCB = b.directionalValues.get(circuit) == '+' ? 1 : -1;
-
-                double resistance = 0;
-                if (b.inCircuit) {
-                    for (Resistor resistor : b.resistors) {
-                        resistance += resistor.resistance * signCB;
-
-                    }
-
-                    for (Wire wire : b.sources) {
-                        source = (DCSource) wire;
-
-                        int signBW = wire.directionalValues.get(b) == '+' ? 1 : -1;
-                        int signS  = source.signSource;
-
-                        Log.d("signS" ,"signS = " + signS + " voltage = " + source.voltage);
-
-                        eds += source.voltage * signCB * signBW * signS;
-
-                    }
-
-
-                }
-
-                this.lowerMatrixReferencePart[i][this.branches.indexOf(b)] = resistance;
-
-            }
-
-            this.lowerMatrixReferencePart[i][this.currentsAmount]      = eds;**/
         }
 
-        /** 3. Sort equations **/
-            /** A. Fill up matrixF from equations ArrayList // it is ready!!! **/
+        /** 3. Form matrixS from matrixF **/
 
+
+        for (int i = 0; i < this.countersF.length; i ++) {
+            this.matrixS[this.countersS[this.countersF[i] - 1] ++ ][this.countersF[i] - 1] = (short) i;
+        }
+
+        int indexF;
+        int min;
+        EquationHolder equationH;
+        EquationHolder equationHC;
+
+        for (int i = 0; i < this.matrixS.length; i ++) {
+            for (int j = 0; j < this.countersS[i]; j ++) {
+                indexF = this.matrixS[j][i];
+
+                min = Integer.MAX_VALUE;
+                equationHC = null;
+
+                for (int k = 0; k < this.countersF[indexF]; k ++) {
+                    // int equationNumber = this.matrixF[k][indexF];
+                    equationH = this.equations.get(this.matrixF[k][indexF]);
+
+                    if (equationH.price < min && !equationH.isSelected) {
+                        min = equationH.price;
+                        equationHC = equationH;
+                    }
+                }
+
+                if (equationHC != null) {
+                    equationHC.setPosition(indexF); // indexF
+                } else {
+                    Log.d("matrixx", "NULL");
+                }
+
+            }
+        }
+
+
+        for (EquationHolder equationHolder : this.equations) {
+            equationHolder.show();
+        }
 
         /** OUTPUT **/
 
         Log.d("matrixx", "_____________________________________");
+        Log.d("matrixx", "______________matrixF________________");
         Log.d("matrixx", "_____________________________________");
+
+        for (int u = 0; u < matrixF.length; u ++) {
+
+            String line = "";
+
+            for (int j = 0; j < this.currentsAmount; j ++) {
+                line += matrixF[u][j] + "  ";
+            }
+
+            Log.d("matrixx", line);
+
+        }
+
+        Log.d("matrixx", "_____________________________________");
+        Log.d("matrixx", "______________matrixS________________");
+        Log.d("matrixx", "_____________________________________");
+
+        for (int u = 0; u < matrixS.length; u ++) {
+
+            String line = "";
+
+            for (int j = 0; j < this.currentsAmount; j ++) {
+                line += matrixS[u][j] + "  ";
+            }
+
+            Log.d("matrixx", line);
+
+        }
+
+        Log.d("matrixx", "_____________________________________");
+        Log.d("matrixx", "______________matrix1________________");
         Log.d("matrixx", "_____________________________________");
 
         for (int u = 0; u < matrix1.length; u ++) {
 
             String line = "";
 
-            for (int j = 0; j < this.currentsAmount + 1; j ++) {
+            for (int j = 0; j < this.currentsAmount; j ++) {
                 line += matrix1[u][j] + "  ";
-                //       System.out.print(resultMatrix[u][j] + "\t");
             }
 
             Log.d("matrixx", line);
 
         }
+
+        Log.d("matrixx", "_____________________________________");
+
+        String line = "";
+        for (int u = 0; u < this.equations.size(); u ++) {
+            line += this.equations.get(u).index + " ";
+        }
+
+        Log.d("matrixx", line);
 
         Log.d("matrixx", "_____________________________________");
     //    this.calculate();

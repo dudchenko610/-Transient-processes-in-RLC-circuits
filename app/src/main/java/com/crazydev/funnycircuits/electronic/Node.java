@@ -84,7 +84,7 @@ public class Node {
             this.nodeSprite.draw();
         }
 
-        Log.d("jointt", "wires = " + this.wires.size());
+  //      Log.d("jointt", "wires = " + this.wires.size());
 
     }
 
