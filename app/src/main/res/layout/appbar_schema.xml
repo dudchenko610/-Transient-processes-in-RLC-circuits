@@ -49,6 +49,8 @@
             android:background="@drawable/ripple_effect_main"
             android:layout_gravity="right" />
 
+
+
         <ImageView
             android:id="@+id/delete_wire"
             android:layout_width="40dp"
@@ -63,6 +65,40 @@
             android:src="@drawable/basketbr"
             android:background="@drawable/ripple_effect_main"
             android:layout_gravity="left" />
+
+        <ImageView
+            android:id="@+id/start_calculating"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+
+            android:paddingBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp"
+
+            android:onClick="onStartCalculating"
+            android:src="@drawable/play"
+            android:background="@drawable/ripple_effect_main"
+            android:layout_gravity="center" />
+
+        <ImageView
+            android:id="@+id/stop_calculating"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+
+            android:paddingBottom="4dp"
+            android:paddingTop="4dp"
+            android:paddingRight="4dp"
+            android:paddingLeft="4dp"
+
+            android:onClick="onStopCalculating"
+            android:src="@drawable/stop"
+            android:background="@drawable/ripple_effect_main"
+            android:layout_gravity="center" />
+
+
+
+
 
     </androidx.appcompat.widget.Toolbar>
 

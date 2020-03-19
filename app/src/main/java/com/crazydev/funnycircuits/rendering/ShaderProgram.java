@@ -43,7 +43,7 @@ public class ShaderProgram {
     private int aColorLocation;
     private int uTextureUnitLocation;
 
-    protected Vector2D position;
+    public Vector2D position;
     protected float xComponent_ratio = 1;
     protected float yComponent_ratio = 1;
     protected float zoom = 1f;
@@ -77,7 +77,16 @@ public class ShaderProgram {
     private float parentViewWidth;
     private float parentViewHeight;
 
-    public ShaderProgram() {
+    private static ShaderProgram instance;
+
+    public static ShaderProgram getInstance() {
+        if (instance == null) {
+            instance = new ShaderProgram();
+        }
+        return instance;
+    }
+
+    private ShaderProgram() {
         this.position = new Vector2D(0, 0);
     }
 
@@ -209,7 +218,7 @@ public class ShaderProgram {
             return;
         }
 
-        Log.d("log", "zoom = " + zoom);
+    //    Log.d("log", "zoom = " + zoom);
 
         this.zoom = d;
 

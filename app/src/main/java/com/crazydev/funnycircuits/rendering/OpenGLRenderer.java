@@ -9,24 +9,19 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-
-import androidx.annotation.Nullable;
 
 import com.crazydev.funnycircuits.R;
-import com.crazydev.funnycircuits.electronic.Wire;
+import com.crazydev.funnycircuits.SchemaActivity;
 import com.crazydev.funnycircuits.electronic.World;
-import com.crazydev.funnycircuits.events.OnWireSelected;
+import com.crazydev.funnycircuits.events.OnWireSelectedListener;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
+import com.crazydev.funnycircuits.rendering.interfaces.ITouchEventService;
+import com.crazydev.funnycircuits.rendering.services.TouchEventService;
 import com.crazydev.funnycircuits.util.Constants;
-import com.crazydev.funnycircuits.views.eventhandling.Input.TouchEvent;
 
 import java.util.HashMap;
-import java.util.List;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -42,21 +37,28 @@ import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glViewport;
 
-public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Renderer {
 
-    private ShaderProgram shaderProgram;
-    public static VertexBatcher VERTEX_BATCHER;
-    private Context       context;
-    private OpenGLRendererTouchEventListener openGLRendererTouchEventListener;
 
-    private Object stateChanged = new Object();
-    private Vector3D color = new Vector3D(1, 1, 1);
-    enum    GLGameState {
+public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Renderer, ITouchEventService.OnTouchEventsListener{
+
+    enum GLGameState {
         Running,
         Paused,
         Finished,
         Idle
-    };
+    }
+
+    private SchemaActivity.UIThreadSynchronizer uiThreadSynchronizer;
+    private ITouchEventService touchEventService;
+
+    private OpenGLRendererTouchEventListener openGLRendererTouchEventListener;
+    private ShaderProgram shaderProgram;
+    public  VertexBatcher vertexBatcher;
+    private Context       context;
+
+
+    private Object stateChanged = new Object();
+    private Vector3D color = new Vector3D(1, 1, 1);
 
     private GLGameState state = GLGameState.Paused;
     private HashMap<String, Sprite> numbersSprites = new HashMap<String, Sprite>();
@@ -64,44 +66,18 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
     private float [] axesVerts = {-20000, 0, 20000, 0, 0, -20000, 0, 20000};
     private Vector3D axesColor = new Vector3D(200 / 255.0f, 200 / 255.0f, 200 / 255.0f); // 128
     private Vector3D gridColor = new Vector3D(230 / 255.0f, 230 / 255.0f, 230 / 255.0f);
-    private Vector2D touchedDown = new Vector2D();
-    private Vector2D diff = new Vector2D();
-    private Vector2D delta = new Vector2D();
-    private boolean moving  = false;
-    private boolean zooming = false;
-    private float pLength = 0;
 
-    private boolean isWireMode     = false;
-    private boolean isWireSelected = false;
     private World electronicWorld;
 
     private boolean makeScreenShot = false;
 
-    private Vector2D downSavedPos               = new Vector2D();
-    private Vector2D upSavedPos                 = new Vector2D();
-    private Vector3D creatingSuccesfulWireColor = new Vector3D(0,1,0);
-    private Vector3D creatingWrongWireColor     = new Vector3D(1,0,0);
-    private Vector3D translateWireColor         = new Vector3D(0,0,1);
-    private boolean  isWireCreating             = false;
-    private Vector2D savedWirePosition          = new Vector2D();
-    private Vector2D newPosition                = new Vector2D();
-
-    private boolean wireTranslateMode = false;
-
-    private Handler handler;
-
-    private Wire     selectedWire;
-    private Vector2D selectedTranslatePoint = new Vector2D();
-    private Vector3D creatingWireColor      = this.creatingSuccesfulWireColor;
-    private boolean  toDeleteWire           = false;
-    private Vector2D vec                    = new Vector2D();
-
-    private OnWireSelected onWireSelected;
-
+    // context menu related vars
     private long time        = 0;
     private double deltaTime = 0;
-    private double timeSum   = 0;
-    private boolean handleTouchEvents = true;
+
+ //   private Handler handler;
+
+    private boolean toDeleteWire = false;
 
     private Handler onLongClickHandler = new Handler() {
         @Override
@@ -115,10 +91,6 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
     };
 
 
-    public void onContextMenuClosed() {
-        this.handleTouchEvents = true;
-    }
-
     public OpenGLRenderer (Context context, AttributeSet attribs) {
         super(context, attribs);
 
@@ -127,8 +99,9 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
         this.setRenderer(this);
 
         this.openGLRendererTouchEventListener = new OpenGLRendererTouchEventListener();
-
         this.setOnTouchListener(openGLRendererTouchEventListener);
+
+        this.touchEventService = new TouchEventService(this.openGLRendererTouchEventListener, this);
 
         int color = context.getResources().getColor(R.color.default_color_surface);
 
@@ -141,10 +114,9 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
         this.color.y = G;
         this.color.z = B;
 
-        Log.d("taggg", "OpenGLRenderer CONSTRUCTOR");
-
-        this.shaderProgram = new ShaderProgram();
+        this.shaderProgram = ShaderProgram.getInstance();
     }
+
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -160,30 +132,27 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
 
         if (state == GLGameState.Running) {
 
-            VERTEX_BATCHER.clearVerticesBufferColor_Markers();
-            VERTEX_BATCHER.clearVerticesBufferTexture();
+            vertexBatcher.clearVerticesBufferColor_Markers();
+            vertexBatcher.clearVerticesBufferTexture();
 
             GLES20.glLineWidth(1.0f);
 
-            if (this.handleTouchEvents) {
-                this.handleTouchEvents();
-            }
+
+            // handle
+            this.touchEventService.handleTouchEvents();
 
 
             this.depictDecartGrid();
-            VERTEX_BATCHER.depictPointsAndLines();
-
-            VERTEX_BATCHER.depictSpritesTextured(Assets.digits);
-
-
+            vertexBatcher.depictPointsAndLines();
+            vertexBatcher.depictSpritesTextured(Assets.digits);
             this.electronicWorld.draw();
 
-
-            VERTEX_BATCHER.clearVerticesBufferColor_Markers();
+            vertexBatcher.clearVerticesBufferColor_Markers();
 
             GLES20.glLineWidth(2.0f);
-            this.depictCreatingElement();
-            VERTEX_BATCHER.depictPointsAndLines();
+            this.touchEventService.depictCreatingElement();
+            vertexBatcher.depictPointsAndLines();
+
 
 
             if (makeScreenShot) {
@@ -213,23 +182,8 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
             }
         }
 
-
-        if (this.isCountingToContextMenu) {
-            this.timeSum += deltaTime;
-
-            if (this.timeSum > .1) {
-                this.timeSum = 0;
-
-                this.handleTouchEvents = false;
-                this.wireTranslateMode = false;
-                this.isCountingToContextMenu = false;
-                this.onLongClickHandler.sendEmptyMessage(0);
-            }
-        } else {
-            this.timeSum = 0;
-        }
-
-    //    Log.d("translating", "translating = " + deltaTime + " timeSum = " + timeSum);
+        this.touchEventService.contextMenuCountDown(this.deltaTime);
+        // contextMenuCountdown()
 
         this.deltaTime = (System.nanoTime() - this.time) / 1_000_000_000.0d;
 
@@ -241,7 +195,7 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
         this.shaderProgram.compileAndLinkGLProgram(context, R.raw.vertex_shader, R.raw.fragment_shader, getWidth(), getHeight());
         this.shaderProgram.setSides(Constants.SCREEN_WIDTH, Constants.SCREEN_HEIGHT);
 
-        VERTEX_BATCHER = new VertexBatcher(shaderProgram, 200000);
+        this.vertexBatcher = VertexBatcher.getInstance();
 
         this.state = GLGameState.Running;
 
@@ -249,35 +203,35 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
 
         Sprite sprite;
 
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_m_b, new Vector2D(1, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_m_b, new Vector2D(1, 1), 2, 4);
         numbersSprites.put("-", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_0_b, new Vector2D(1, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_0_b, new Vector2D(1, 1), 2, 4);
         numbersSprites.put("0", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_1_b, new Vector2D(3, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_1_b, new Vector2D(3, 1), 2, 4);
         numbersSprites.put("1", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_2_b, new Vector2D(5, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_2_b, new Vector2D(5, 1), 2, 4);
         numbersSprites.put("2", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_3_b, new Vector2D(7, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_3_b, new Vector2D(7, 1), 2, 4);
         numbersSprites.put("3", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_4_b, new Vector2D(9, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_4_b, new Vector2D(9, 1), 2, 4);
         numbersSprites.put("4", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_5_b, new Vector2D(11, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_5_b, new Vector2D(11, 1), 2, 4);
         numbersSprites.put("5", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_6_b, new Vector2D(13, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_6_b, new Vector2D(13, 1), 2, 4);
         numbersSprites.put("6", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_7_b, new Vector2D(15, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_7_b, new Vector2D(15, 1), 2, 4);
         numbersSprites.put("7", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_8_b, new Vector2D(17, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_8_b, new Vector2D(17, 1), 2, 4);
         numbersSprites.put("8", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_9_b, new Vector2D(19, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_9_b, new Vector2D(19, 1), 2, 4);
         numbersSprites.put("9", sprite);
-        sprite = new TexturedSprite(VERTEX_BATCHER, Assets.digitsRegion_p_b, new Vector2D(21, 1), 2, 4);
+        sprite = new TexturedSprite(vertexBatcher, Assets.digitsRegion_p_b, new Vector2D(21, 1), 2, 4);
         numbersSprites.put("p", sprite);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        this.electronicWorld = new World();
+        this.electronicWorld = World.getInstance();
 
     }
 
@@ -308,13 +262,20 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
     }
 
 
+    public void onResume() {
+        super.onResume();
+        synchronized(stateChanged) {
+            state = GLGameState.Running;
+        }
+    }
+
     @Override
     protected void onCreateContextMenu(ContextMenu menu) {
         super.onCreateContextMenu(menu);
 
         MenuInflater menuInflater = new MenuInflater(context);
 
-        if (this.isWireSelected) {
+        if (this.touchEventService.isWireSelected()) {
             menuInflater.inflate(R.menu.menu_options_selected, menu);
         } else {
             menuInflater.inflate(R.menu.menu_options_unselected, menu);
@@ -349,7 +310,7 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
             gridVerts[gridLen ++] = i;
             gridVerts[gridLen ++] = y_top;*/
 
-            VERTEX_BATCHER.addLine(i, y_bottom, i, y_top, gridColor, 1.0f);
+            vertexBatcher.addLine(i, y_bottom, i, y_top, gridColor, 1.0f);
         }
 
         for (int i = y_b; i <= y_t; i ++) {
@@ -358,13 +319,13 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
             gridVerts[gridLen ++] = x_right;
             gridVerts[gridLen ++] = i;*/
 
-            VERTEX_BATCHER.addLine(x_left, i, x_right, i, gridColor, 1.0f);
+            vertexBatcher.addLine(x_left, i, x_right, i, gridColor, 1.0f);
 
         }
 
     //   vertexBatcher.depictCurve(gridColor, 1.0f, gridVerts, gridLen, GL_LINES);
-        VERTEX_BATCHER.addLine(axesVerts[0], axesVerts[1], axesVerts[2], axesVerts[3], axesColor, 1.0f);
-        VERTEX_BATCHER.addLine(axesVerts[4], axesVerts[5], axesVerts[6], axesVerts[7], axesColor, 1.0f);
+        vertexBatcher.addLine(axesVerts[0], axesVerts[1], axesVerts[2], axesVerts[3], axesColor, 1.0f);
+        vertexBatcher.addLine(axesVerts[4], axesVerts[5], axesVerts[6], axesVerts[7], axesColor, 1.0f);
 
    //    vertexBatcher.depictCurve(axesColor, 1.0f, axesVerts, axesVerts.length, GL_LINES);
 
@@ -529,316 +490,16 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
 
        depictNumber("0", r_x, r_y, r_x, r_y);
 
-
-
     }
 
-    private boolean isCountingToContextMenu = false;
-
-    private void handleTouchEvents() {
-        List<TouchEvent> touchEvents = openGLRendererTouchEventListener.getTouchEvents();
-
-        int max = 0;
-
-        for (int i = 0; i < touchEvents.size(); i ++) {
-            if (touchEvents.get(i).pointer > max) {
-                max = touchEvents.get(i).pointer;
-            }
-        }
-
-        if (max > 1) {
-            this.isCountingToContextMenu = false;
-            moving  = false;
-            zooming = false;
-            return;
-        }
-
-        if (max == 1) {
-            this.isCountingToContextMenu = false;
-            moving = false;
-
-            if (touchEvents.size() > 1) {
-                for (int i = 0; i < touchEvents.size(); i += 2) {
-
-                    if (i + 1 == touchEvents.size()) {
-                        break;
-                    }
-
-                    TouchEvent event_0 = touchEvents.get(i + 0);
-                    TouchEvent event_1 = touchEvents.get(i + 1);
-
-                    shaderProgram.touchToWorld_no_zoom(event_0);
-                    shaderProgram.touchToWorld_no_zoom(event_1);
-
-                    diff.set(event_0.touchPosition).subtract(event_1.touchPosition);
-
-                    if (!zooming) {
-                        pLength = diff.length();
-                        zooming = true;
-                        continue;
-                    }
-
-                    float t = diff.length();
-
-         //           Log.d("update", "" + t + " k " + event_0.pointer + " " + event_1.pointer);
-                    shaderProgram.zoom(pLength - t);
-
-                    pLength = t;
-
-                }
-            }
-
-            return;
-        }
-
-        zooming = false;
-
-        if (max == 0 && !this.isWireMode) {
-
-            for (int i = 0; i < touchEvents.size(); i ++) {
-                TouchEvent event = touchEvents.get(i);
-                shaderProgram.touchToWorld(event);
-
-                if (event.type == TouchEvent.TOUCH_DOWN) {
-                    this.isCountingToContextMenu = true;
-
-                    touchedDown.set(event.touchPosition);
-
-                    float x = this.shaderProgram.position.x  - (this.shaderProgram.right - this.shaderProgram.left) / 2.0f + event.touchPosition.x ;
-                    float y = this.shaderProgram.position.y  - (this.shaderProgram.top - this.shaderProgram.bottom) / 2.0f + event.touchPosition.y;
-
-                    int _x = Math.round(x);
-                    int _y = Math.round(y);
-
-                    this.downSavedPos.set(event.touchPosition);
-
-                    Wire wire;
-                    if ((wire = this.electronicWorld.tryToSelect(new Vector2D(x, y))) != null) {
-                        this.deleteButtonActivate();
-
-                        if (this.onWireSelected != null) {
-                            this.onWireSelected.onDeselect();
-                            this.onWireSelected.onSelect(wire);
-                            this.isWireSelected = true;
-                        }
-
-                        this.wireTranslateMode = true;
-                        this.isCountingToContextMenu = true;
-                        this.creatingWireColor = this.translateWireColor;
-                        this.selectedTranslatePoint.set(_x, _y);
-                        this.selectedWire = wire;
-
-                        this.savedWirePosition.set(this.selectedWire.nodeA.location);
-
-                        this.newPosition.set(this.selectedWire.nodeB.location);
-
-                        continue;
-                    }
-
-                    moving = true;
-                }
-
-                if (event.type == TouchEvent.TOUCH_UP) {
-                    this.isCountingToContextMenu = false;
-
-                    touchedDown.set(event.touchPosition);
-                    moving = false;
-
-                    this.upSavedPos.set(event.touchPosition);
-
-                    if (this.wireTranslateMode) {
-                        this.wireTranslateMode = false;
-                        this.creatingWireColor = this.creatingSuccesfulWireColor;
-
-                        if (!this.savedWirePosition.equals(this.selectedWire.nodeA.location) && !this.newPosition.equals(this.selectedWire.nodeB.location)) {
-                            if (this.electronicWorld.checkWire(this.selectedWire, savedWirePosition, newPosition)) {
-
-                                if (this.onWireSelected != null) {
-                                    this.onWireSelected.onDeselect();
-                                    this.isWireSelected = false;
-                                }
-
-                                this.selectedWire.remove();
-                                this.electronicWorld.createWire(this.selectedWire.type, this.savedWirePosition, this.newPosition, this.selectedWire.orientation);
-                            }
-                        }
-
-                    } else {
-                        if (this.upSavedPos.subtract(this.downSavedPos).lengthSquared() < 0.01f) {
-                            this.electronicWorld.deselect();
-
-                            if (this.onWireSelected != null) {
-                                this.onWireSelected.onDeselect();
-                                this.isWireSelected = false;
-                            }
-
-                            this.deleteButtonDeactivate();
-                        }
-                    }
-                }
-
-                if (event.type == TouchEvent.TOUCH_DRAGGED) {
-                    if (this.moving) {
-                        delta.set(touchedDown).subtract(event.touchPosition);
-                        touchedDown.set(event.touchPosition);
-                        shaderProgram.translateViewport(delta);
-
-                        if (delta.lengthSquared() > 0.0008) {
-                            this.isCountingToContextMenu = false;
-                        }
-
-                    } else if (this.wireTranslateMode) {
-                        // wire translate logic
-
-                        float x = this.shaderProgram.position.x  - (this.shaderProgram.right - this.shaderProgram.left) / 2.0f + event.touchPosition.x;
-                        float y = this.shaderProgram.position.y  - (this.shaderProgram.top - this.shaderProgram.bottom) / 2.0f + event.touchPosition.y;
-
-                        int _x = Math.round(x);
-                        int _y = Math.round(y);
-
-                        this.vec.set(this.savedWirePosition);
-
-                        this.savedWirePosition.set(this.selectedWire.nodeA.location).add(_x - this.selectedTranslatePoint.x,
-                                                                                         _y - this.selectedTranslatePoint.y);
-
-                        this.newPosition.set(this.selectedWire.nodeB.location.copy()).add(_x - this.selectedTranslatePoint.x,
-                                                                                          _y - this.selectedTranslatePoint.y);
-
-                        if (!this.vec.equals(this.savedWirePosition)) {
-
-                            this.isCountingToContextMenu = false;
-
-                            if (this.electronicWorld.checkWire(this.selectedWire, savedWirePosition, newPosition)) {
-                                this.creatingWireColor = this.translateWireColor;
-                            } else {
-                                this.creatingWireColor = this.creatingWrongWireColor;
-                            }
-                        }
-
-                     //   Log.d("translating", "translating = " + deltaTime + " timeSum = " + timeSum);
-                    }
-
-
-                }
-
-             //   shaderProgram.touchToWorld_no_zoom(event);
-             //   Log.d("logggg", "x = " + event.touchPosition.x + " y = " + event.touchPosition.y);
-
-            }
-        } else {
-            this.moving = false;
-
-            for (int i = 0; i < touchEvents.size(); i ++) {
-                TouchEvent event = touchEvents.get(i);
-                shaderProgram.touchToWorld(event);
-
-                float x = this.shaderProgram.position.x  - (this.shaderProgram.right - this.shaderProgram.left) / 2.0f + event.touchPosition.x ;
-                float y = this.shaderProgram.position.y  - (this.shaderProgram.top - this.shaderProgram.bottom) / 2.0f + event.touchPosition.y;
-
-                int _x = Math.round(x);
-                int _y = Math.round(y);
-
-                if (event.type == TouchEvent.TOUCH_DOWN) {
-                    this.isCountingToContextMenu = false;
-
-                    this.savedWirePosition.set(_x, _y);
-                    this.newPosition.set(this.savedWirePosition);
-                    this.isWireCreating = true;
-                    this.creatingWireColor = this.creatingSuccesfulWireColor;
-                    continue;
-                }
-
-                if (event.type == TouchEvent.TOUCH_UP) {
-                    this.isCountingToContextMenu = false;
-
-                    this.isWireCreating = false;
-                    Vector2D nP = new Vector2D(_x, _y);
-                    Vector2D diff = savedWirePosition.copy().subtract(nP);
-
-                    diff.x = Math.abs(diff.x);
-                    diff.y = Math.abs(diff.y);
-
-                    if (!diff.isNullLength()) {
-                        if (diff.x >= diff.y) {
-                            nP.y = savedWirePosition.y;
-                        } else {
-                            nP.x = savedWirePosition.x;
-                        }
-                    } else {
-                        continue;
-                    }
-
-                    this.electronicWorld.createWire(savedWirePosition, nP);
-                }
-
-                this.newPosition.set(_x, _y);
-                Vector2D diff = savedWirePosition.copy().subtract(newPosition);
-
-                diff.x = Math.abs(diff.x);
-                diff.y = Math.abs(diff.y);
-
-                if (!diff.isNullLength()) {
-                    if (diff.x >= diff.y) {
-                        newPosition.y = savedWirePosition.y;
-                    } else {
-                        newPosition.x = savedWirePosition.x;
-                    }
-                } else {
-                    this.creatingWireColor = this.creatingSuccesfulWireColor;
-                    continue;
-                }
-
-                if (this.electronicWorld.checkWire(newPosition, savedWirePosition)) {
-                    this.creatingWireColor = this.creatingSuccesfulWireColor;
-
-                } else {
-                    this.creatingWireColor = this.creatingWrongWireColor;
-                }
-
-
-            }
-
-        }
-
-    }
 
     public void deleteSelectedWires() {
         if (this.toDeleteWire) {
             this.electronicWorld.deleteSelectedWires();
-            this.deleteButtonDeactivate();
+            this.onDeleteButtonStateChanged(false);
         }
     }
 
-    private void deleteButtonActivate() {
-        this.toDeleteWire = true;
-        Message message = new Message();
-        message.what = 1;
-        this.handler.sendMessage(message);
-    }
-
-    private void deleteButtonDeactivate() {
-        this.toDeleteWire = false;
-
-        Message message = new Message();
-        message.what = 0;
-        this.handler.sendMessage(message);
-    }
-
-    public void setDeleteWireButton(Handler handler) {
-        this.handler = handler;
-    }
-
-    private void depictCreatingElement() {
-
-        if ((this.isWireMode && !this.moving && this.isWireCreating && creatingWireColor != null) || (this.wireTranslateMode && !this.savedWirePosition.equals(this.selectedWire.nodeA.location)
-                                                                                                                             && !this.newPosition.equals(this.selectedWire.nodeB.location))) {
-
-            VERTEX_BATCHER.addPoint(savedWirePosition.x, savedWirePosition.y, creatingWireColor, 1);
-            VERTEX_BATCHER.addPoint(newPosition.x, newPosition.y, creatingWireColor, 1);
-            VERTEX_BATCHER.addLine(this.savedWirePosition, this.newPosition, this.creatingWireColor);
-
-        }
-    }
 
     private void depictNumber(String num, float x, float y, float w, float h) {
 
@@ -869,40 +530,29 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
         }
     }
 
-    public void onResume() {
-        synchronized(stateChanged) {
-            state = GLGameState.Running;
-        }
+    @Override
+    public void onShowContextMenu() {
+        this.onLongClickHandler.sendEmptyMessage(0); // show
+    }
+
+    @Override
+    public void onDeleteButtonStateChanged(boolean state) {
+        this.toDeleteWire = state;
+        this.uiThreadSynchronizer.setDeleteButtonState(state);
+    }
+
+
+    public void setUIThreadSynchronizer(SchemaActivity.UIThreadSynchronizer uiThreadSynchronizer) {
+        this.uiThreadSynchronizer = uiThreadSynchronizer;
+    }
+
+    public ITouchEventService getTouchEventService() {
+        return this.touchEventService;
     }
 
     public void makeScreenShot() {
         this.makeScreenShot = true;
     }
 
-    public void setWireMode(boolean wireMode) {
-        this.isWireMode = wireMode;
-        this.wireTranslateMode = false;
-
-        if (this.electronicWorld != null) {
-            this.electronicWorld.deselect();
-        }
-
-    }
-
-    public void setOnWireSelected(OnWireSelected onWireSelected) {
-        this.onWireSelected = onWireSelected;
-    }
-
-    public World getElectronicWorld() {
-        return this.electronicWorld;
-    }
-
-    public ShaderProgram getShaderProgram() {
-        return this.shaderProgram;
-    }
-
-    public VertexBatcher getVertexBatcher() {
-        return this.VERTEX_BATCHER;
-    }
 
 }

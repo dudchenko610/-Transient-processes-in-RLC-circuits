@@ -10,6 +10,11 @@
 
     <string name="action_insert">Insert</string>
 
+    <string name="label_current">current        </string>
+    <string name="label_voltage">voltage</string>
+    <string name="label_charge">charge</string>
+    <string name="label_linkage">linkage</string>
+
     <string name="drawer_item_home">Home</string>
     <string name="drawer_item_free_play">Free Play</string>
     <string name="drawer_item_custom">Custom</string>

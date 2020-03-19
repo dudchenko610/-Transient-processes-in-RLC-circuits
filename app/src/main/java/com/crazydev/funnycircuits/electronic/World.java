@@ -12,6 +12,7 @@ import com.crazydev.funnycircuits.math.OverlapTester;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
 import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
+import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ import java.util.Set;
 
 public class World {
 
+    private VertexBatcher vertexBatcher;
+
     protected HashMap<Integer, Node> nodes;
     protected ArrayList<Wire>        wires;
     protected ArrayList<Graph>      graphs;
@@ -31,11 +34,23 @@ public class World {
 
     public static final int OFFSET = 2_000;
 
-    public World() {
+    private static World world;
+
+    public static World getInstance() {
+        if (world == null) {
+            world = new World();
+        }
+
+        return world;
+    }
+
+    private World() {
 
         this.nodes  = new  HashMap<Integer, Node>();
         this.wires  = new ArrayList<Wire>();
         this.graphs = new ArrayList<Graph>();
+
+        this.vertexBatcher = VertexBatcher.getInstance();
 
     }
 
@@ -145,7 +160,7 @@ public class World {
 
         for (Wire wire : this.wires) {
             wire.isChecked  = false;
-            wire.isSelected = false;
+            wire.deselect();
         }
 
         this.simplifyConnectedWires();
@@ -209,7 +224,7 @@ public class World {
         for (int i = 0; i < this.wires.size(); i ++) {
             wire = this.wires.get(i);
 
-            if (wire.isSelected) {
+            if (wire.drawableManager.isSelected()) {
                 wire.remove();
                 i --;
             }
@@ -283,7 +298,7 @@ public class World {
 
         for (Wire wire : this.wires) {
             wire.isChecked  = false;
-            wire.isSelected = false;
+            wire.deselect();
             wire.nodeA.originalStructure.clear();
             wire.nodeB.originalStructure.clear();
         }
@@ -372,7 +387,7 @@ public class World {
 
         for (Branch branch : circuit.branches) {
            for (Wire wire : branch.wires) {
-               wire.isSelected = true;
+               wire.select();
            }
         }
 
@@ -419,20 +434,20 @@ public class World {
 
     public void draw() {
 
-        OpenGLRenderer.VERTEX_BATCHER.clearVerticesBufferColor();
+        vertexBatcher.clearVerticesBufferColor();
 
         for (Wire wire : this.wires) {
             wire.draw();
         }
 
-        OpenGLRenderer.VERTEX_BATCHER.depictSpritesColored();
+        vertexBatcher.depictSpritesColored();
 
       /*  for (Branch branch : branches) {
             branch.nodeA.draw();
             branch.nodeB.draw();
         }*/
 
-        OpenGLRenderer.VERTEX_BATCHER.clearVerticesBufferTexture();
+        vertexBatcher.clearVerticesBufferTexture();
 
         Iterator<Map.Entry<Integer, Node>> iterator = this.nodes.entrySet().iterator();
         Map.Entry pair;
@@ -446,7 +461,7 @@ public class World {
 
         }
 
-        OpenGLRenderer.VERTEX_BATCHER.depictSpritesTextured(Assets.elements);
+        vertexBatcher.depictSpritesTextured(Assets.elements);
 
     }
 

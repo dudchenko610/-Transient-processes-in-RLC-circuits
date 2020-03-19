@@ -28,8 +28,20 @@ public class VertexBinder {
     private int STRIDE_C = STRIDE_COLORED * Constants.BYTES_PER_FLOAT;
     private int STRIDE_T = STRIDE_TEXTURED * Constants.BYTES_PER_FLOAT;
 
-    public VertexBinder(ShaderProgram shaderProgram, int sizeOfVerticesArray) {
-        this.shaderProgram = shaderProgram;
+    private static VertexBinder instance;
+
+    public static VertexBinder getInstance() {
+        if (instance == null) {
+            instance = new VertexBinder();
+        }
+
+        return instance;
+    }
+
+    private VertexBinder() {
+        int sizeOfVerticesArray = Constants.SIZE_OF_VERTICES_ARRAY;
+
+        this.shaderProgram = ShaderProgram.getInstance();
         this.tempBuffer = new int[sizeOfVerticesArray];
 
         intBufferColored = ByteBuffer

@@ -17,12 +17,8 @@ public class Branch {
     protected static int ID = 0;
     protected int hash_id   = 0;
 
-    protected HashSet<Wire>   wires      = new HashSet<Wire>();
+    public HashSet<Wire>      wires      = new HashSet<Wire>();
     public HashSet<Wire>      sources    = new HashSet<Wire>();
-    public HashSet<Resistor>  resistors  = new HashSet<Resistor>();
-    public HashSet<Capacitor> capacitors = new HashSet<Capacitor>();
-    public HashSet<Inductor>  inductors  = new HashSet<Inductor>();
-
 
     public HashMap<Circuit, Character> directionalValues = new HashMap<Circuit, Character>();
     public Node nodeA;

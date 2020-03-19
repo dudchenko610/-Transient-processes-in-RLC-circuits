@@ -13,4 +13,6 @@ public class Constants {
     public static int SCREEN_WIDTH  = 10;
     public static int SCREEN_HEIGHT = 10;
 
+    public static int SIZE_OF_VERTICES_ARRAY = 200000;
+
 }

@@ -5,6 +5,8 @@ import android.util.Log;
 import com.crazydev.funnycircuits.electronic.elements.Capacitor;
 import com.crazydev.funnycircuits.electronic.elements.Inductor;
 import com.crazydev.funnycircuits.electronic.elements.Resistor;
+import com.crazydev.funnycircuits.electronic.interfaces.IDrawableManager;
+import com.crazydev.funnycircuits.electronic.managers.DrawableManager;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.Rectangle;
 import com.crazydev.funnycircuits.math.Vector2D;
@@ -13,11 +15,14 @@ import com.crazydev.funnycircuits.rendering.ColoredSprite;
 import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
 import com.crazydev.funnycircuits.rendering.Sprite;
 import com.crazydev.funnycircuits.rendering.TexturedSprite;
+import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.HashMap;
 
 public class Wire {
 
+
+    protected VertexBatcher vertexBatcher;
     public enum WireType {
       WIRE,
       RESISTOR,
@@ -35,8 +40,7 @@ public class Wire {
     private static int ID = 0;
     protected int id      = 0;
     protected boolean isHorizontal = false;
-    protected Sprite wireSelection;
-    protected Sprite wireMain;
+
     protected Rectangle AABB;
 
     public int orientation = -1;
@@ -45,12 +49,15 @@ public class Wire {
     public Node nodeB;
 
     protected boolean isChecked = false;
-    public boolean isSelected = false;
 
     public Vector3D WIRE_COLOR = new Vector3D(1, 0, 0);
     private World world;
 
     protected boolean isSource = false;
+
+  //  public boolean isSelected = false;
+
+    protected IDrawableManager drawableManager;
 
     public Wire(World world, Node nodeA, Node nodeB) {
         this(world, nodeA, nodeB, - 1);
@@ -63,17 +70,18 @@ public class Wire {
         this.orientation = orientation;
 
         this.id = Wire.ID ++;
-        this.setupWireSelectionSprite();
+        this.setupDrawableManager();
         this.setupAABB();
 
         this.nodeA.wires.add(this);
         this.nodeB.wires.add(this);
 
-
     }
 
     public Wire(Node nodeA, Node nodeB) {
         this.type = WireType.WIRE;
+        this.vertexBatcher = VertexBatcher.getInstance();
+
         int w = (int) Math.abs(nodeA.location.x - nodeB.location.x);
         int h = (int) Math.abs(nodeA.location.y - nodeB.location.y);
 
@@ -103,39 +111,33 @@ public class Wire {
 
     }
 
-    protected void setupWireSelectionSprite() {
-      /*  if (this.isHorizontal) {
-            this.wireSelection = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.wireSelectionRegion,
-                    new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.25f);
+    protected void setupDrawableManager() {
+        this.drawableManager = new DrawableManager() {
 
-            this.wireMain = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.wireRegion,
-                    new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.1f);
+            @Override
+            public void setupSprites() {
+                if (Wire.this.isHorizontal) {
 
+                    this.sprites.add(new ColoredSprite(vertexBatcher, new Vector3D(0.30196f, 0.30196f, 0.30196f), new Vector3D(0.30196f, 0.30196f, 0.30196f),
+                            new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.1f));
 
-        } else {
-            this.wireSelection = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.wireSelectionRegion,
-                    new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.25f, nodeB.location.y - nodeA.location.y);
+                    this.sprites.add(new ColoredSprite(vertexBatcher, new Vector3D(0.02352f, 0f, 0.65098f), new Vector3D(0.02352f, 0f, 0.65098f),
+                            new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.25f));
 
-            this.wireMain = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.wireRegion,
-                    new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.1f, nodeB.location.y - nodeA.location.y);
-        }*/
+                } else {
 
-        if (this.isHorizontal) {
-            this.wireSelection = new ColoredSprite(OpenGLRenderer.VERTEX_BATCHER, new Vector3D(0.02352f, 0f, 0.65098f), new Vector3D(0.02352f, 0f, 0.65098f),
-                    new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.25f);
+                    this.sprites.add(new ColoredSprite(vertexBatcher, new Vector3D(0.30196f, 0.30196f, 0.30196f) , new Vector3D(0.30196f, 0.30196f, 0.30196f),
+                            new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.1f, nodeB.location.y - nodeA.location.y));
 
-            this.wireMain = new ColoredSprite(OpenGLRenderer.VERTEX_BATCHER, new Vector3D(0.30196f, 0.30196f, 0.30196f), new Vector3D(0.30196f, 0.30196f, 0.30196f),
-                    new Vector2D((nodeB.location.x + nodeA.location.x) / 2.0f, nodeB.location.y), nodeB.location.x - nodeA.location.x, 0.1f);
+                    this.sprites.add(new ColoredSprite(vertexBatcher, new Vector3D(0.02352f, 0f, 0.65098f), new Vector3D(0.02352f, 0f, 0.65098f),
+                            new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.25f, nodeB.location.y - nodeA.location.y));
 
+                }
+            }
 
-        } else {
-            this.wireSelection = new ColoredSprite(OpenGLRenderer.VERTEX_BATCHER, new Vector3D(0.02352f, 0f, 0.65098f), new Vector3D(0.02352f, 0f, 0.65098f),
-                    new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.25f, nodeB.location.y - nodeA.location.y);
+        };
 
-            this.wireMain = new ColoredSprite(OpenGLRenderer.VERTEX_BATCHER,new Vector3D(0.30196f, 0.30196f, 0.30196f) , new Vector3D(0.30196f, 0.30196f, 0.30196f),
-                    new Vector2D(nodeB.location.x, (nodeB.location.y + nodeA.location.y) / 2.0f), 0.1f, nodeB.location.y - nodeA.location.y);
-        }
-
+        this.drawableManager.setupSprites();
     }
 
     protected void setupAABB() {
@@ -350,14 +352,7 @@ public class Wire {
     }
 
     public void draw() {
-     //   OpenGLRenderer.VERTEX_BATCHER.addLine(nodeA.location, nodeB.location, WIRE_COLOR, 1.0f);
-
-        this.wireMain.draw();
-
-        if (this.isSelected) {
-            this.wireSelection.draw();
-        }
-
+        this.drawableManager.drawSprites();
     }
 
     @Override
@@ -372,13 +367,13 @@ public class Wire {
     }
 
     public void select() {
-        this.isSelected       = true;
+        this.drawableManager.setSelected(true);
         this.nodeA.isSelected = true;
         this.nodeB.isSelected = true;
     }
 
     public void deselect() {
-        this.isSelected       = false;
+        this.drawableManager.setSelected(false);
         this.nodeA.isSelected = false;
         this.nodeB.isSelected = false;
     }
@@ -576,7 +571,6 @@ public class Wire {
         }
     }
 
-
     // starter for arranging. it is without nodeA verifying
     protected void rearrangeFromBranchFirst(Branch branch, Node lastNode, Node node) {
         this.directionalValues.remove(branch);
@@ -643,13 +637,13 @@ public class Wire {
 
         if (this.isSource) {
             branch.sources.add(this);
-        } else if (this.type == WireType.RESISTOR) {
+        } /*else if (this.type == WireType.RESISTOR) {
             branch.resistors.add((Resistor) this);
         } else if (this.type == WireType.CAPACITOR) {
             branch.capacitors.add((Capacitor) this);
         } else if (this.type == WireType.INDUCTOR) {
             branch.inductors.add((Inductor) this);
-        }
+        }*/
 
         if (this.nodeA.equals(lastNode)) {
             this.directionalValues.put(branch, '+');
@@ -711,5 +705,6 @@ public class Wire {
             throw new RuntimeException("Pizdets!");
         }
     }
+
 
 }

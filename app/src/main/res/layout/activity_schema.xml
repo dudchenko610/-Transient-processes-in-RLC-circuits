@@ -12,6 +12,8 @@
         layout = "@layout/appbar_schema">
     </include>
 
+
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
@@ -24,6 +26,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
 
+            ads:layout_constraintHorizontal_bias="0.0"
+            ads:layout_constraintVertical_bias="1.0"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -31,6 +35,70 @@
 
         </com.crazydev.funnycircuits.rendering.OpenGLRenderer>
 
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
+
+
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cb_current"
+                android:text="current "
+                android:layoutDirection="rtl"
+                android:textSize="6pt"
+                android:visibility="gone"
+                style="@style/TextAppearance.AppCompat.Headline" />
+
+            <CheckBox
+                android:id="@+id/cb_voltage"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/cb_current"
+                android:layoutDirection="rtl"
+                android:lines = "1"
+                android:visibility="gone"
+
+                android:layout_alignEnd="@+id/cb_current"
+                android:layout_alignStart="@+id/cb_current"
+                android:text="@string/label_voltage"
+                android:textSize="6pt" />
+
+            <CheckBox
+                android:id="@+id/cb_charge"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+
+                android:layout_below="@+id/cb_voltage"
+                android:layoutDirection="rtl"
+                android:layout_alignEnd="@+id/cb_current"
+                android:layout_alignStart="@+id/cb_current"
+                android:text="@string/label_charge"
+                android:lines = "1"
+                android:textSize="6pt" />
+
+            <CheckBox
+                android:id="@+id/cb_linkage"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/cb_charge"
+                android:layoutDirection="rtl"
+                android:layout_alignEnd="@+id/cb_current"
+                android:layout_alignStart="@+id/cb_current"
+                android:visibility="gone"
+
+                android:text="@string/label_linkage"
+                android:lines = "1"
+                android:textSize="6pt" />
+
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,17 +109,16 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent">
 
-        <com.crazydev.funnycircuits.views.NumberPickerView
-            android:id = "@+id/numberPickerView"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_width="2dp"
-            android:layout_height="2dp"
-            android:visibility="gone"
-            android:layout_weight="1"/>
+            <com.crazydev.funnycircuits.views.NumberPickerView
+                android:id = "@+id/numberPickerView"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="5dp"
+                android:layout_width="2dp"
+                android:layout_height="2dp"
+                android:visibility="gone"
+                android:layout_weight="1"/>
 
         </LinearLayout>
-
 
 
         <EditText
@@ -77,8 +144,8 @@
 
         </Button>
 
-
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
 

@@ -2,9 +2,9 @@ package com.crazydev.funnycircuits.events;
 
 import com.crazydev.funnycircuits.electronic.Wire;
 
-public interface OnWireSelected {
+public interface OnWireSelectedListener {
 
-    void onSelect(Wire wire);
+    void onWireSelect(Wire wire);
     void onDeselect();
 
 }

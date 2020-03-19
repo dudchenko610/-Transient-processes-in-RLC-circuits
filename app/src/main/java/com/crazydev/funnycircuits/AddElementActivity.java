@@ -256,7 +256,7 @@ public class AddElementActivity extends AppCompatActivity implements View.OnClic
         }
 
         builder = new AlertDialog.Builder(this);
-        builder.setView(view).show();
+        builder.setView(view).show(); // E/WindowManager: android.view.WindowLeaked: Activity com.crazydev.funnycircuits.AddElementActivity has leaked window co
 
 
     //    Log.d("actRes", "type = "  + tvName.getText().toString() + " orientation = "  + 0);

@@ -14,14 +14,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Calculator {
 
-    private Branch[]   currents;
-
+    private Graph graph;
 
     protected double [][] matrix1;
-    private double [][] matrix2;
 
     private ArrayList<Node>   nodes;
     protected ArrayList<Branch> branches;
@@ -30,20 +29,14 @@ public class Calculator {
     protected int independentCircuitsAmount;
     protected int currentsAmount;
 
-    private ArrayList<EquationHolder> equations;
-
-    protected short[] countersF;
-    protected short[][] matrixF;
-
-    protected short countersS[];
-    protected short matrixS[][];
-
-    protected short takenPositions[];
+    private ArrayList<CircuitEquationHolder> equations;
 
     public Calculator(Graph graph) {
+        this.graph = graph;
+
         this.nodes     = new ArrayList<Node>();
         this.branches  = new ArrayList<Branch>();
-        this.equations = new ArrayList<EquationHolder>();
+        this.equations = new ArrayList<CircuitEquationHolder>();
 
         this.nodes.addAll(graph.realNodes);
         this.branches.addAll(graph.realBranches);
@@ -52,240 +45,122 @@ public class Calculator {
         this.currentsAmount            = this.branches.size();
         this.independentCircuitsAmount = graph.circuits.size();
 
-
         this.matrix1 = new double[this.currentsAmount][this.currentsAmount + 1];
-        this.matrix2 = new double[this.currentsAmount][this.currentsAmount + 1];
-
-        this.countersF = new short[this.currentsAmount];
-        this.matrixF   = new short[this.currentsAmount][this.currentsAmount];
-
-        this.countersS = new short[this.currentsAmount];
-        this.matrixS   = new short[this.currentsAmount][this.currentsAmount];
-
-        this.takenPositions = new short[this.currentsAmount];
-
-        for (int i = 0; i < this.matrixF.length; i ++) {
-
-            for (int j = 0; j < this.matrixF[i].length; j ++) {
-                this.matrixF[i][j] = -1;
-                this.matrixS[i][j] = -1;
-            }
-        }
-
-        // Find currents with correct direction
 
         /** 1. Fill up part of matrix with currents**/
 
+        Node node;
         for (int i = 0; i < this.nodesAmount - 1; i ++) {
+            node = this.nodes.get(i);
 
-            this.equations.add(new NodeEquationHolder(this, this.nodes.get(i), i));
+            Branch branch;
+            for (int j = 0; j < this.branches.size(); j ++) {
+                branch = this.branches.get(j);
 
+                if (branch.inCircuit) {
+                    if (branch.nodeA.equals(node)) {
+                        // save as '-'
+                        this.matrix1[i][j] = -1;
+
+                    } else if (branch.nodeB.equals(node)) {
+                        // save as '+'
+                        this.matrix1[i][j] = +1;
+
+                    } else {
+                        //    throw new RuntimeException("Pizdets");
+                    }
+
+                }
+            }
 
         }
-
 
         /** 2. Fill part of matrix with voltages **/
 
         for (int i = 0; i < graph.circuits.size(); i ++) {
-
             this.equations.add(new CircuitEquationHolder(this, graph.circuits.get(i), i + this.nodesAmount - 1));
-
         }
 
-        /** 3. Form matrixS from matrixF **/
 
+        this.calculate();
+    }
 
-        for (int i = 0; i < this.countersF.length; i ++) {
-            this.matrixS[this.countersS[this.countersF[i] - 1] ++ ][this.countersF[i] - 1] = (short) i;
-        }
+    public void calculate() {
 
-        int indexF;
-        int min;
-        EquationHolder equationH;
-        EquationHolder equationHC;
+        /** 1. Make upper-triangular matrix **/
 
-        for (int i = 0; i < this.matrixS.length; i ++) {
-            for (int j = 0; j < this.countersS[i]; j ++) {
-                indexF = this.matrixS[j][i];
+        double[] toSwap;
+        double[] answers = new double[matrix1.length];
 
-                min = Integer.MAX_VALUE;
-                equationHC = null;
+        for (int i = 0; i < matrix1.length; i ++) {
+            double frac;
 
-                for (int k = 0; k < this.countersF[indexF]; k ++) {
-                    // int equationNumber = this.matrixF[k][indexF];
-                    equationH = this.equations.get(this.matrixF[k][indexF]);
+            if (matrix1[i][i] == 0.0) {
+                // I need to swap rows
 
-                    if (equationH.price < min && !equationH.isSelected) {
-                        min = equationH.price;
-                        equationHC = equationH;
+                for (int j = i + 1; j < matrix1.length; j ++) {
+                    if (matrix1[j][i] != 0.0) {
+                        // swap
+                        toSwap = matrix1[i];
+                        matrix1[i] = matrix1[j];
+                        matrix1[j] = toSwap;
+                        break;
                     }
                 }
 
-                if (equationHC != null) {
-                    equationHC.setPosition(indexF); // indexF
-                } else {
-                    Log.d("matrixx", "NULL");
+            }
+
+            for (int j = i + 1; j < matrix1.length; j ++) {
+                if (matrix1[j][i] != 0) {
+                    frac = matrix1[j][i] / matrix1[i][i];
+
+                    for (int k = i; k < matrix1[i].length; k ++) {
+                        matrix1[j][k] -= frac * matrix1[i][k];
+
+                    }
                 }
 
+
             }
         }
 
-
-        for (EquationHolder equationHolder : this.equations) {
-            equationHolder.show();
-        }
-
-        /** OUTPUT **/
-
-        Log.d("matrixx", "_____________________________________");
-        Log.d("matrixx", "______________matrixF________________");
-        Log.d("matrixx", "_____________________________________");
-
-        for (int u = 0; u < matrixF.length; u ++) {
-
-            String line = "";
-
-            for (int j = 0; j < this.currentsAmount; j ++) {
-                line += matrixF[u][j] + "  ";
-            }
-
-            Log.d("matrixx", line);
-
-        }
-
-        Log.d("matrixx", "_____________________________________");
-        Log.d("matrixx", "______________matrixS________________");
-        Log.d("matrixx", "_____________________________________");
-
-        for (int u = 0; u < matrixS.length; u ++) {
-
-            String line = "";
-
-            for (int j = 0; j < this.currentsAmount; j ++) {
-                line += matrixS[u][j] + "  ";
-            }
-
-            Log.d("matrixx", line);
-
-        }
-
-        Log.d("matrixx", "_____________________________________");
-        Log.d("matrixx", "______________matrix1________________");
-        Log.d("matrixx", "_____________________________________");
+        Log.d("matrixx","__________upper-triangular-matrix_____________");
 
         for (int u = 0; u < matrix1.length; u ++) {
-
             String line = "";
 
-            for (int j = 0; j < this.currentsAmount; j ++) {
+            for (int j = 0; j < this.currentsAmount + 1; j ++) {
                 line += matrix1[u][j] + "  ";
             }
 
             Log.d("matrixx", line);
-
         }
 
         Log.d("matrixx", "_____________________________________");
 
+
+        /** 2. Find solutions by back substitution **/
+
+        double lastM;
+
+        for (int i = matrix1.length - 1; i > -1 ; i --) {
+            lastM = matrix1[i][matrix1.length];
+
+            for (int j = i + 1; j < matrix1.length ; j ++) {
+                lastM -= matrix1[i][j] * answers[j];
+            }
+
+            answers[i] = lastM / matrix1[i][i];
+
+        }
+
         String line = "";
-        for (int u = 0; u < this.equations.size(); u ++) {
-            line += this.equations.get(u).index + " ";
+        for (int u = 0; u < answers.length; u ++) {
+            line += answers[u] + ", ";
+
         }
 
         Log.d("matrixx", line);
-
-        Log.d("matrixx", "_____________________________________");
-    //    this.calculate();
-
-
-    }
-
-    // too long execution
-    public void calculate() {
-
-        // Fill matrices
-
-        // Jordan-Gauss method matrix resolution
-
-        double[][] inputMatrix  = matrix1;
-        double[][] resultMatrix = matrix2;
-
-        double[][] third;
-
-        int size = inputMatrix.length;
-        int len  = inputMatrix[0].length;
-
-
-        for (int i = 0; i < size; i ++) {
-
-            // 1. Fill next matrix with i-copied-row and 0-1 columns
-
-            for (int j = 0; j < size; j ++) {
-                for (int k = 0; k <= i; k ++) {
-                    if (j == k) {
-                        resultMatrix[j][k] = 1;
-                    } else {
-                        resultMatrix[j][k] = 0;
-                    }
-
-                }
-            }
-
-
-            double ii = inputMatrix[i][i];
-            for (int j = i; j < len; j ++) {
-                inputMatrix[i][j] = inputMatrix[i][j] / ii;
-            }
-
-
-            for (int j = i + 1; j < len; j ++) {
-                resultMatrix[i][j] = inputMatrix[i][j];
-            }
-
-
-            for (int j = 0; j < size; j ++) {
-                if (j != i) {
-                    for (int k = i + 1; k < len; k ++) {
-                        resultMatrix[j][k] = inputMatrix[i][i] * inputMatrix[j][k] - inputMatrix[j][i] * inputMatrix[i][k];
-
-                    }
-                }
-            }
-
-
-        //    System.out.println();
-
-            for (int u = 0; u < size; u ++) {
-
-                for (int j = 0; j < len; j ++) {
-             //       System.out.print(resultMatrix[u][j] + "\t");
-                }
-
-            }
-
-            // 2. Swap matrices
-
-            third        = inputMatrix;
-            inputMatrix  = resultMatrix;
-            resultMatrix = third;
-
-        }
-
-
-        for (int u = 0; u < inputMatrix.length; u ++) {
-
-            String line = "";
-
-            for (int j = 0; j < this.currentsAmount + 1; j ++) {
-                line += inputMatrix[u][j] + "  ";
-                //       System.out.print(resultMatrix[u][j] + "\t");
-            }
-
-            Log.d("matrixx", line);
-
-        }
-
-        Log.d("matrixx", "_____________________________________");
 
 
     }

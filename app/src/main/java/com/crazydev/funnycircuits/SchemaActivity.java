@@ -4,14 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.graphics.Shader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -30,14 +29,15 @@ import com.crazydev.funnycircuits.electronic.elements.Capacitor;
 import com.crazydev.funnycircuits.electronic.elements.DCSource;
 import com.crazydev.funnycircuits.electronic.elements.Inductor;
 import com.crazydev.funnycircuits.electronic.elements.Resistor;
-import com.crazydev.funnycircuits.events.OnWireSelected;
+import com.crazydev.funnycircuits.electronic.interfaces.ILoggable;
+import com.crazydev.funnycircuits.events.OnWireSelectedListener;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
 import com.crazydev.funnycircuits.rendering.ShaderProgram;
 import com.crazydev.funnycircuits.views.NumberPickerView;
 
 public class SchemaActivity extends AppCompatActivity implements
-        OnWireSelected, NumberPickerView.OnPickerValueChanged {
+        OnWireSelectedListener, NumberPickerView.OnPickerValueChanged, View.OnClickListener {
 
     public static final String PARCELABLE_KEY_WIRE_MODE               = "wire_ley";
     public static final String PARCELABLE_KEY_VIEWPOINT_TRANSLATION_X = "viewpoint_translation_ley_x";
@@ -46,10 +46,12 @@ public class SchemaActivity extends AppCompatActivity implements
 
     public static final int REQUEST_CODE_ADD_ELEMENT_ACTIVITY = 0;
 
-    protected Toolbar                 toolbar;
-    protected OpenGLRenderer   openGLRenderer;
+    protected Toolbar         toolbar;
+    protected OpenGLRenderer  openGLRenderer;
+    protected ShaderProgram   shaderProgram = ShaderProgram.getInstance();;
+
     protected World           electronicWorld;
-    protected LayoutInflater inflater;
+    protected LayoutInflater  inflater;
 
     protected boolean isWireMode = false;
 
@@ -58,9 +60,11 @@ public class SchemaActivity extends AppCompatActivity implements
     private ImageView deleteWireButton;
 
     private NumberPickerView numberPickerView;
+    private CheckBox cbCurrent, cbVoltage, cbCharge, cbLinkage;
 
-    private Handler handler;
     private Wire selectedWire;
+
+    private UIThreadSynchronizer uiThreadSynchronizer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +76,9 @@ public class SchemaActivity extends AppCompatActivity implements
         getSupportActionBar().setTitle(null);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        this.uiThreadSynchronizer = new UIThreadSynchronizer(this);
         this.openGLRenderer  = (OpenGLRenderer) findViewById(R.id.open_gl_renderer);
-        this.openGLRenderer.setOnWireSelected(this);
+        this.openGLRenderer.getTouchEventService().setOnWireSelectedListener(this);
 
      //   this.registerForContextMenu(this.openGLRenderer);
 
@@ -81,24 +86,21 @@ public class SchemaActivity extends AppCompatActivity implements
         this.numberPickerView = (NumberPickerView) findViewById(R.id.numberPickerView);
         this.numberPickerView.setOnPickerValueChanged(this);
 
+        this.cbCurrent = (CheckBox) findViewById(R.id.cb_current);
+        this.cbVoltage = (CheckBox) findViewById(R.id.cb_voltage);
+        this.cbCharge  = (CheckBox) findViewById(R.id.cb_charge);
+        this.cbLinkage = (CheckBox) findViewById(R.id.cb_linkage);
+
+        this.cbCurrent.setOnClickListener(this);
+        this.cbVoltage.setOnClickListener(this);
+        this.cbCharge.setOnClickListener(this);
+        this.cbLinkage.setOnClickListener(this);
+
     //    this.numberPickerView.setValue(0.0001);
         this.adjustNumberPickerView();
 
-        Handler handler = new Handler() {
-
-            public void handleMessage(Message msg) {
-                if (msg.what == 1) {
-                    SchemaActivity.this.deleteWireButton.setImageResource(R.drawable.basket);
-                } else {
-                    SchemaActivity.this.deleteWireButton.setImageResource(R.drawable.basketbr);
-                }
-
-            }
-
-        };
-
-        this.openGLRenderer.setDeleteWireButton(handler);
-        this.electronicWorld = this.openGLRenderer.getElectronicWorld();
+        this.openGLRenderer.setUIThreadSynchronizer(this.uiThreadSynchronizer);
+        this.electronicWorld = World.getInstance();
 
         this.editText = (EditText) findViewById(R.id.branch_number);
         this.button   = (Button) findViewById(R.id.ok);
@@ -115,48 +117,11 @@ public class SchemaActivity extends AppCompatActivity implements
 
 
              //   openGLRenderer.getElectronicWorld().underlineBranch(m, n);
-                openGLRenderer.getElectronicWorld().underlineBranch(m, n);
+                electronicWorld.underlineBranch(m, n);
 
             }
         });
 
-        this.handler = new Handler() {
-
-            public void handleMessage(Message msg) {
-                switch(msg.what) {
-                    case 0:
-
-                        int visibility = View.VISIBLE;
-                        Wire wire      = (Wire) msg.obj;
-
-                        switch (wire.type) {
-                            case INDUCTOR:
-                                SchemaActivity.this.numberPickerView.setValue(((Inductor) wire).inductance);
-                                break;
-                            case RESISTOR:
-                                SchemaActivity.this.numberPickerView.setValue(((Resistor) wire).resistance);
-                                break;
-                            case CAPACITOR:
-                                SchemaActivity.this.numberPickerView.setValue(((Capacitor) wire).capacity);
-                                break;
-                            case DC_SOURCE:
-                                SchemaActivity.this.numberPickerView.setValue(((DCSource) wire).voltage);
-                                break;
-                            case WIRE:
-                                visibility = View.GONE;
-                                SchemaActivity.this.selectedWire = null;
-                        }
-
-                        SchemaActivity.this.numberPickerView.setVisibility(visibility);
-                        break;
-                    case 1:
-
-                        SchemaActivity.this.numberPickerView.setVisibility(View.GONE);
-                        break;
-                }
-
-            }
-        };
 
     }
 
@@ -204,8 +169,7 @@ public class SchemaActivity extends AppCompatActivity implements
             imb.setBackground(getResources().getDrawable(R.drawable.pencil));
         }*/
 
-        this.openGLRenderer.setWireMode(this.isWireMode);
-        ShaderProgram shaderProgram = this.openGLRenderer.getShaderProgram();
+        this.openGLRenderer.getTouchEventService().setWireMode(this.isWireMode);
         Vector2D pos = new Vector2D(inState.getFloat(SchemaActivity.PARCELABLE_KEY_VIEWPOINT_TRANSLATION_X),
                                     inState.getFloat(SchemaActivity.PARCELABLE_KEY_VIEWPOINT_TRANSLATION_Y));
 
@@ -220,7 +184,6 @@ public class SchemaActivity extends AppCompatActivity implements
         super.onSaveInstanceState(outState);
         outState.putBoolean(SchemaActivity.PARCELABLE_KEY_WIRE_MODE, this.isWireMode);
 
-        ShaderProgram shaderProgram = this.openGLRenderer.getShaderProgram();
         Vector2D pos = shaderProgram.getViewportPosition();
 
         outState.putFloat(SchemaActivity.PARCELABLE_KEY_VIEWPOINT_TRANSLATION_X, pos.x);
@@ -230,19 +193,12 @@ public class SchemaActivity extends AppCompatActivity implements
     }
 
     public void onWireCreatingMode(View v) {
+
         CheckBox imb = (CheckBox) v;
         this.isWireMode = !this.isWireMode;
-
         imb.setChecked(this.isWireMode);
 
-     /*   if (this.isWireMode){
-            imb.setBackground(getResources().getDrawable(R.drawable.pencilbr));
-        } else {
-            imb.setBackground(getResources().getDrawable(R.drawable.pencil));
-        }*/
-
-        this.openGLRenderer.setWireMode(this.isWireMode);
-
+        this.openGLRenderer.getTouchEventService().setWireMode(this.isWireMode);
 
     }
 
@@ -252,17 +208,14 @@ public class SchemaActivity extends AppCompatActivity implements
         return true;
     }
 
-
     @Override
     public void onContextMenuClosed(Menu menu) {
         super.onContextMenuClosed(menu);
-        this.openGLRenderer.onContextMenuClosed();
-
+        this.openGLRenderer.getTouchEventService().onContextMenuClosed();
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-
 
         Log.d("translating", "itemmm");
 
@@ -289,8 +242,23 @@ public class SchemaActivity extends AppCompatActivity implements
         }
     }
 
+
+    // FROM LAYOUT
+
     public void onDeleteWire(View v) {
         this.openGLRenderer.deleteSelectedWires();
+        this.uiThreadSynchronizer.freeUpScreen();
+    }
+
+    public void onStartCalculating(View v) {
+
+
+
+        ApplicationMode.setSimulatingMode();
+    }
+
+    public void onStopCalculating(View v) {
+        ApplicationMode.setEditingMode();
     }
 
     public void onAddElement(View v) {
@@ -313,19 +281,18 @@ public class SchemaActivity extends AppCompatActivity implements
                 String type = data.getStringExtra("wireType");
                 int orientation = data.getIntExtra("orientation", -1);
 
-                ShaderProgram shaderProgram = this.openGLRenderer.getShaderProgram();
                 Vector2D pos = shaderProgram.getViewportPosition();
 
           //    Log.d("actRes", "type = " + type + " orientation = "  + orientation);
 
                 if (type.equals("DC")) {
-                    openGLRenderer.getElectronicWorld().createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.DC_SOURCE, orientation);
+                    this.electronicWorld.createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.DC_SOURCE, orientation);
                 } else if (type.equals("Capacitor")) {
-                    openGLRenderer.getElectronicWorld().createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.CAPACITOR, orientation);
+                    this.electronicWorld.createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.CAPACITOR, orientation);
                 } else if (type.equals("Resistor")) {
-                    openGLRenderer.getElectronicWorld().createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.RESISTOR, orientation);
+                    this.electronicWorld.createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.RESISTOR, orientation);
                 } else if (type.equals("Inductor")) {
-                    openGLRenderer.getElectronicWorld().createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.INDUCTOR, orientation);
+                    this.electronicWorld.createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.INDUCTOR, orientation);
                 }
 
                 break;
@@ -333,23 +300,14 @@ public class SchemaActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onSelect(Wire wire) {
-        Message message = new Message();
-        message.what = 0;
-        message.obj = wire;
-
-        this.selectedWire = wire;
-        this.handler.sendMessage(message);
+    public void onWireSelect(Wire wire) {
+        this.uiThreadSynchronizer.wireWasSelected(wire);
     }
 
     @Override
     public void onDeselect() {
-
-        this.selectedWire = null;
-        this.handler.sendEmptyMessage(1);
-
+        this.uiThreadSynchronizer.freeUpScreen();
     }
-
 
     @Override
     public void onValueChanged(double value) {
@@ -376,5 +334,156 @@ public class SchemaActivity extends AppCompatActivity implements
 
     }
 
+
+    @Override
+    public void onClick(View view) {
+
+        if (selectedWire instanceof ILoggable) {
+            ILoggable loggable = (ILoggable) selectedWire;
+
+        //    Log.d("HEREE", " __HERE 2__");
+
+            switch (view.getId()) {
+                case R.id.cb_current:
+                    loggable.setCurrentLogState(this.cbCurrent.isChecked());
+                    break;
+                case R.id.cb_voltage:
+                    loggable.setVoltageLogState(this.cbVoltage.isChecked());
+                    break;
+                case R.id.cb_charge:
+                    loggable.setChargeLogState(this.cbCharge.isChecked());
+                    break;
+                case R.id.cb_linkage:
+                    loggable.setLinkageLogState(this.cbLinkage.isChecked());
+                    break;
+            }
+
+        }
+
+
+    }
+
+    public static class UIThreadSynchronizer extends Handler {
+
+        private SchemaActivity schemaActivity;
+
+        public UIThreadSynchronizer(SchemaActivity schemaActivity) {
+            this.schemaActivity = schemaActivity;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch(msg.what) {
+                case 0:
+                    schemaActivity.deleteWireButton.setImageResource(R.drawable.basketbr);
+                    schemaActivity.deleteWireButton.setEnabled(false);
+                    break;
+                case 1:
+                    schemaActivity.deleteWireButton.setImageResource(R.drawable.basket);
+                    schemaActivity.deleteWireButton.setEnabled(true);
+                    break;
+
+                    // 0 on wire select
+                case 2:
+                    int visibility = View.VISIBLE;
+                    Wire wire      = (Wire) msg.obj;
+
+                    schemaActivity.cbCurrent.setChecked(false);
+                    schemaActivity.cbCharge.setChecked(false);
+                    schemaActivity.cbVoltage.setChecked(false);
+                    schemaActivity.cbLinkage.setChecked(false);
+
+                    if (wire instanceof ILoggable) {
+                        ILoggable loggable = (ILoggable) wire;
+
+                        Log.d("HEREE", " __HERE 1__");
+
+                        schemaActivity.cbCurrent.setChecked(loggable.getCurrentLogState());
+                        schemaActivity.cbCharge.setChecked(loggable.getChargeLogState());
+                        schemaActivity.cbVoltage.setChecked(loggable.getVoltageLogState());
+                        schemaActivity.cbLinkage.setChecked(loggable.getLinkageLogState());
+                    }
+
+                    switch (wire.type) {
+                        case INDUCTOR:
+                            schemaActivity.numberPickerView.setValue(((Inductor) wire).inductance);
+                            schemaActivity.cbCurrent.setVisibility(View.VISIBLE);
+                            schemaActivity.cbVoltage.setVisibility(View.VISIBLE);
+                            schemaActivity.cbLinkage.setVisibility(View.VISIBLE);
+
+                            break;
+                        case RESISTOR:
+                            schemaActivity.numberPickerView.setValue(((Resistor) wire).resistance);
+                            schemaActivity.cbCurrent.setVisibility(View.VISIBLE);
+                            schemaActivity.cbVoltage.setVisibility(View.VISIBLE);
+
+                            break;
+
+                        case CAPACITOR:
+                            schemaActivity.numberPickerView.setValue(((Capacitor) wire).capacity);
+                            schemaActivity.cbCurrent.setVisibility(View.VISIBLE);
+                            schemaActivity.cbVoltage.setVisibility(View.VISIBLE);
+                            schemaActivity.cbCharge.setVisibility(View.VISIBLE);
+
+                            break;
+                        case DC_SOURCE:
+                            schemaActivity.numberPickerView.setValue(((DCSource) wire).voltage);
+                            break;
+                        case WIRE:
+                            visibility = View.GONE;
+                            schemaActivity.selectedWire = null;
+                    }
+
+                    schemaActivity.numberPickerView.setVisibility(visibility);
+
+                    break;
+                    // free up screen
+                case 3:
+                    schemaActivity.numberPickerView.setVisibility(View.GONE);
+
+                    schemaActivity.cbCurrent.setChecked(false);
+                    schemaActivity.cbCharge.setChecked(false);
+                    schemaActivity.cbVoltage.setChecked(false);
+                    schemaActivity.cbLinkage.setChecked(false);
+
+                    schemaActivity.cbCurrent.setVisibility(View.GONE);
+                    schemaActivity.cbCharge.setVisibility(View.GONE);
+                    schemaActivity.cbVoltage.setVisibility(View.GONE);
+                    schemaActivity.cbLinkage.setVisibility(View.GONE);
+
+                    break;
+            }
+        }
+
+        public void setDeleteButtonState(boolean state) {
+            Message message = new Message();
+            message.what = state ? 1 : 0;
+            this.sendMessage(message);
+        }
+
+        public void enableStartButton(boolean state) {
+
+        }
+
+        public void enableStopButton(boolean state) {
+
+        }
+
+        public void wireWasSelected(Wire wire) {
+            Message message = new Message();
+            message.what = 2;
+            message.obj = wire;
+
+            schemaActivity.selectedWire = wire;
+            this.sendMessage(message);
+        }
+
+        public void freeUpScreen() {
+            schemaActivity.selectedWire = null;
+            this.sendEmptyMessage(3);
+        }
+
+
+    }
 
 }

@@ -11,6 +11,7 @@ import com.crazydev.funnycircuits.math.Vector3D;
 import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
 import com.crazydev.funnycircuits.rendering.Sprite;
 import com.crazydev.funnycircuits.rendering.TexturedSprite;
+import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +22,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class Node {
+
+    protected VertexBatcher vertexBatcher;
 
     public    Vector2D location;
     protected ArrayList<Wire> wires;
@@ -58,6 +61,7 @@ public class Node {
     }
 
     public Node(Vector2D location, int hash_code) {
+        this.vertexBatcher     = VertexBatcher.getInstance();
         this.location          = location;
         this.wires             = new ArrayList<>();
         this.originalStructure = new HashMap<Branch, Node>();
@@ -70,8 +74,8 @@ public class Node {
     }
 
     private void initializeSprites() {
-        this.nodeSprite = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.nodeRegion, this.location, 0.30f,0.30f);
-        this.nodeSelectionSprite = new TexturedSprite(OpenGLRenderer.VERTEX_BATCHER, Assets.nodeSelectionRegion, this.location, 0.35f,0.35f);
+        this.nodeSprite = new TexturedSprite(vertexBatcher, Assets.nodeRegion, this.location, 0.30f,0.30f);
+        this.nodeSelectionSprite = new TexturedSprite(vertexBatcher, Assets.nodeSelectionRegion, this.location, 0.35f,0.35f);
 
     }
 

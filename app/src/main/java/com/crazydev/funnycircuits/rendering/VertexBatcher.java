@@ -2,6 +2,7 @@ package com.crazydev.funnycircuits.rendering;
 
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
+import com.crazydev.funnycircuits.util.Constants;
 
 import static android.opengl.GLES20.GL_LINES;
 import static android.opengl.GLES20.GL_POINTS;
@@ -20,13 +21,22 @@ public class VertexBatcher {
 
     private int verts = 0;
 
-    public VertexBatcher(ShaderProgram shaderProgram, int maxPointsLines) {
-        this.shaderProgram = shaderProgram;
+    private static VertexBatcher instance;
 
-        this.vertexBinder = new VertexBinder(shaderProgram, maxPointsLines);
+    public static VertexBatcher getInstance() {
+        if (instance == null) {
+            instance = new VertexBatcher();
+        }
 
-        this.verticesLines    = new float[maxPointsLines * 6 * 2];
-        this.verticesPoints   = new float[maxPointsLines * 6 * 1];
+        return instance;
+    }
+
+    private VertexBatcher() {
+        this.shaderProgram = ShaderProgram.getInstance();
+        this.vertexBinder  = VertexBinder.getInstance();
+
+        this.verticesLines    = new float[Constants.SIZE_OF_VERTICES_ARRAY * 6 * 2];
+        this.verticesPoints   = new float[Constants.SIZE_OF_VERTICES_ARRAY * 6 * 1];
 
     }
 
