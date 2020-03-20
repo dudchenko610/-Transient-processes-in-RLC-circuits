@@ -105,6 +105,7 @@ public class Node {
     public void remove(World world, Wire wire) {
         this.wires.remove(wire);
         this.isSelected = false;
+        this.isChecked = false;
         if (this.wires.size() == 0) {
             world.nodes.remove(this.hash_code);
         }

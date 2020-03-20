@@ -382,6 +382,7 @@ public class Wire {
         this.world.wires.remove(this);
         this.nodeA.remove(this.world, this);
         this.nodeB.remove(this.world, this);
+        this.isChecked = false;
     }
 
     public void remove_1() {
@@ -390,6 +391,7 @@ public class Wire {
         this.nodeB.wires.remove(this);
         this.nodeA.isSelected = false;
         this.nodeB.isSelected = false;
+        this.isChecked = false;
     }
 
     private static boolean builtSingle = false;

@@ -26,11 +26,11 @@ public class World {
 
     private VertexBatcher vertexBatcher;
 
-    protected HashMap<Integer, Node> nodes;
-    protected ArrayList<Wire>        wires;
-    protected ArrayList<Graph>      graphs;
+    public HashMap<Integer, Node> nodes;
+    public ArrayList<Wire>        wires;
+    public ArrayList<Graph>      graphs;
 
-    public static HashSet<Branch> branches = new HashSet<Branch>();
+    static HashSet<Branch> branches = new HashSet<Branch>();
 
     public static final int OFFSET = 2_000;
 
@@ -164,7 +164,7 @@ public class World {
         }
 
         this.simplifyConnectedWires();
-        this.buildGraphs();
+   //     this.buildGraphs();
 
     }
 
@@ -226,11 +226,13 @@ public class World {
 
             if (wire.drawableManager.isSelected()) {
                 wire.remove();
+                this.checkWire(wire.nodeA.location, wire.nodeB.location);
                 i --;
             }
         }
 
-        this.buildGraphs();
+        this.simplifyConnectedWires();
+     //   this.buildGraphs();
     }
 
     private void simplifyConnectedWires() {
@@ -286,7 +288,7 @@ public class World {
 
     }
 
-    public void buildGraphs() {
+    private void buildGraphs() {
 
       /**   1. CLEAR **/
 
@@ -338,14 +340,14 @@ public class World {
             }
         }
 
-      /**   3. Find independent circuits **/
+      /**   3. Find independent circuits  **/
 
         for (Graph g : this.graphs) {
             g.findIndependentCircuits();
 
         }
 
-        Random random = new Random();
+    /*    Random random = new Random();
         for (Branch branch : World.branches) {
 
             float r = random.nextFloat();
@@ -357,7 +359,7 @@ public class World {
             for (Wire w : branch.wires) {
                 w.WIRE_COLOR.set(r, g, b);
             }
-        }
+        }*/
 
         /**   4. Exclude hanging nodes in graphs  **/
         for (Graph g : this.graphs) {
@@ -369,16 +371,26 @@ public class World {
         }
 
 
-        Log.d("branches", "------branches = " + branches.size());
-        Log.d("branches", "------graphs = " + graphs.size());
+    //    Log.d("branches", "------branches = " + branches.size());
+    //    Log.d("branches", "------graphs = " + graphs.size());
 
     }
 
+    public void startSimulation() {
+        this.buildGraphs();
 
+
+    }
+
+    public void stopSimulation() {
+
+    }
 
     public void underlineBranch(int m, int n) {
 
-        Graph graph = this.graphs.get(m);
+        simplifyConnectedWires();
+
+      /*  Graph graph = this.graphs.get(m);
         Circuit circuit = graph.circuits.get(n);
 
 
@@ -389,48 +401,10 @@ public class World {
            for (Wire wire : branch.wires) {
                wire.select();
            }
-        }
+        }*/
 
 
     }
-
-    public void underlineNodesOfGraph(int graphIndex) {
-
-
-
-      //  for (Graph graph : this.graphs) {
-        /*    graph.eliminateNodesWithHangingBranches();
-            graph.rearrangeWiresInBranchesInCircuits();
-            graph.rearrangeBranchesInCircuits();*/
-
-          /*  for (Node node : graph.realNodes) {
-                node.isSelected = true;
-                
-            }*/
-
-        /*    for (Circuit circuit : graph.circuits) {
-                for (Branch branch : circuit.branches) {
-
-                    if (branch.inCircuit) {
-                        branch.nodeA.isSelected = true;
-                        branch.nodeB.isSelected = true;
-
-                        for (Wire wire : branch.wires) {
-                            wire.isSelected = true;
-                        }
-                    }
-
-                }
-            }*/
-        }
-
-      /*  Graph graph = this.graphs.get(graphIndex);
-
-        for (Node node : graph.nodes) {
-            node.isSelected = true;
-        }*/
-
-   // }
 
     public void draw() {
 

@@ -104,6 +104,8 @@ public class SchemaActivity extends AppCompatActivity implements
 
         this.editText = (EditText) findViewById(R.id.branch_number);
         this.button   = (Button) findViewById(R.id.ok);
+        this.button.setVisibility(View.GONE);
+        this.editText.setVisibility(View.GONE);
         this.deleteWireButton = (ImageView) findViewById(R.id.delete_wire);
 
         this.button.setOnClickListener(new View.OnClickListener() {
@@ -252,13 +254,18 @@ public class SchemaActivity extends AppCompatActivity implements
 
     public void onStartCalculating(View v) {
 
+        this.electronicWorld.startSimulation();
+        this.openGLRenderer.setSimulatingMode();
+      //  ApplicationMode.setSimulatingMode();
 
-
-        ApplicationMode.setSimulatingMode();
     }
 
     public void onStopCalculating(View v) {
-        ApplicationMode.setEditingMode();
+
+        this.electronicWorld.stopSimulation();
+        this.openGLRenderer.setEditingMode();
+     //   ApplicationMode.setEditingMode();
+
     }
 
     public void onAddElement(View v) {
