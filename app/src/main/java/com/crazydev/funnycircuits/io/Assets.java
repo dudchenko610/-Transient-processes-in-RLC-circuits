@@ -2,6 +2,7 @@ package com.crazydev.funnycircuits.io;
 
 import android.content.Context;
 
+import com.crazydev.funnycircuits.rendering.Font;
 import com.crazydev.funnycircuits.rendering.Texture;
 import com.crazydev.funnycircuits.rendering.TextureRegion;
 
@@ -30,8 +31,14 @@ public class Assets {
     public static TextureRegion digitsRegion_9_b;
     public static TextureRegion digitsRegion_p_b;
 
+    public static Texture UIsTexture;
+    public static Font BLACK_FONT;
+
     public static void load(Context context) {
         IOManager ioManager = new IOManager(context);
+
+        UIsTexture = new Texture(ioManager, "black_font.png");
+        BLACK_FONT = new Font(UIsTexture);
 
         elements            = new Texture(ioManager, "elements.png");
         wireRegion          = new TextureRegion(elements, 0  , 177, 222, 151);

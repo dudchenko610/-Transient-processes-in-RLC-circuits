@@ -50,7 +50,7 @@ public class TouchEventService implements ITouchEventService {
 
     private Wire selectedWire;
 
-    private boolean isCountingToContextMenu;
+    protected boolean isCountingToContextMenu;
     private double timeSum = 0;
 
     public TouchEventService(OpenGLRendererTouchEventListener openGLRendererTouchEventListener,
@@ -137,8 +137,11 @@ public class TouchEventService implements ITouchEventService {
         }
     }
 
-
     protected void handleOneFingerTouch(List<Input.TouchEvent> touchEvents) {
+        handleOneFingerTouch(touchEvents, true);
+    }
+
+    protected void handleOneFingerTouch(List<Input.TouchEvent> touchEvents, boolean selectable) {
 
         if (!this.isWireMode) {
             for (int i = 0; i < touchEvents.size(); i ++) {
@@ -159,7 +162,7 @@ public class TouchEventService implements ITouchEventService {
                     this.downSavedPos.set(event.touchPosition);
 
                     Wire wire;
-                    if ((wire = this.electronicWorld.tryToSelect(new Vector2D(x, y))) != null) {
+                    if (selectable && (wire = this.electronicWorld.tryToSelect(new Vector2D(x, y))) != null) {
 
                         this.onTouchEventsListener.onDeleteButtonStateChanged(true);
 

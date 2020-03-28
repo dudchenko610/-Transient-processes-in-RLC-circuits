@@ -176,6 +176,8 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
 
 
 
+
+
         }
 
         if (state == GLGameState.Paused) {

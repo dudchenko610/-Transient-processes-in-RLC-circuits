@@ -16,6 +16,14 @@ public class TouchEventServiceSimulating extends TouchEventService {
     private GLContentServiceSimulating glContentServiceSimulating;
     protected ArrayList<Item> items;
 
+    private Vector2D lastPos = new Vector2D();
+    private Vector2D currPos = new Vector2D();
+    private Vector2D difference = new Vector2D();
+    private Vector2D pos = new Vector2D();
+    private boolean handlePressed = false;
+    private boolean workingAreaPressed = false;
+    private Item selectedSprite;
+
     public TouchEventServiceSimulating(OpenGLRendererTouchEventListener openGLRendererTouchEventListener,
                                        OnTouchEventsListener onTouchEventsListener, GLContentServiceSimulating glContentServiceSimulating) {
         super(openGLRendererTouchEventListener, onTouchEventsListener);
@@ -25,16 +33,10 @@ public class TouchEventServiceSimulating extends TouchEventService {
 
     }
 
-    private Vector2D lastPos = new Vector2D();
-    private Vector2D currPos = new Vector2D();
-    private Vector2D difference = new Vector2D();
-    private Vector2D pos = new Vector2D();
-    private boolean handlePressed = false;
-    private boolean workingAreaPressed = false;
-    private Item selectedSprite;
-
     @Override
     protected void handleOneFingerTouch(List<Input.TouchEvent> touchEvents) {
+
+        this.isCountingToContextMenu = false;
 
         boolean b = false;
         boolean z = false;
@@ -123,11 +125,60 @@ public class TouchEventServiceSimulating extends TouchEventService {
         }
 
         if (!b && !z) {
-            super.handleOneFingerTouch(touchEvents);
+            super.handleOneFingerTouch(touchEvents, false);
         }
 
 
     }
 
+    @Override
+    protected void handleTwoFingerTouch(List<Input.TouchEvent> touchEvents) {
+
+        this.isCountingToContextMenu = false;
+
+        if (touchEvents.size() > 1) {
+
+            Vector2D pos;
+            for (int i = 0; i < touchEvents.size(); i += 2) {
+
+                if (i + 1 == touchEvents.size()) {
+                    return;
+                }
+
+                Input.TouchEvent event_0 = touchEvents.get(i + 0);
+                Input.TouchEvent event_1 = touchEvents.get(i + 1);
+
+                pos = shaderProgram.touchToWorld_no_changes(event_0);
+
+                pos.x = this.shaderProgram.position.x  - (this.shaderProgram.right - this.shaderProgram.left) / 2.0f + pos.x ;
+                pos.y = this.shaderProgram.position.y  - (this.shaderProgram.top - this.shaderProgram.bottom) / 2.0f + pos.y;
+
+                if (OverlapTester.pointInRectangle(glContentServiceSimulating.handleRectangle, pos)) {
+                    return;
+                }
+
+                if (OverlapTester.pointInRectangle(glContentServiceSimulating.workingAreaRectangle, pos)) {
+                    return;
+                }
+
+                pos = shaderProgram.touchToWorld_no_changes(event_1);
+
+                pos.x = this.shaderProgram.position.x  - (this.shaderProgram.right - this.shaderProgram.left) / 2.0f + pos.x ;
+                pos.y = this.shaderProgram.position.y  - (this.shaderProgram.top - this.shaderProgram.bottom) / 2.0f + pos.y;
+
+                if (OverlapTester.pointInRectangle(glContentServiceSimulating.handleRectangle, pos)) {
+                    return;
+                }
+
+                if (OverlapTester.pointInRectangle(glContentServiceSimulating.workingAreaRectangle, pos)) {
+                    return;
+                }
+            }
+
+            super.handleTwoFingerTouch(touchEvents);
+            this.glContentServiceSimulating.recalculateSizes();
+        }
+
+    }
 
 }

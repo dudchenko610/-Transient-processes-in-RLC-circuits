@@ -34,6 +34,7 @@ public class GLContentService implements IGLContentService {
         this.depictDecartGrid();
         vertexBatcher.depictPointsAndLines();
         vertexBatcher.depictSpritesTextured(Assets.digits);
+
         this.electronicWorld.draw();
 
     }

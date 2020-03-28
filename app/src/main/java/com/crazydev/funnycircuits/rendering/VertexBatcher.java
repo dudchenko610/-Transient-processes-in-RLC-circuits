@@ -19,7 +19,8 @@ public class VertexBatcher {
     private int vertLinesOffset  = 0;
     private int vertPointsOffset = 0;
 
-    private int verts = 0;
+    private int vertsT = 0;
+    private int vertsC = 0;
 
     private static VertexBatcher instance;
 
@@ -102,10 +103,6 @@ public class VertexBatcher {
         addLine(p1, p2, color, 1.0f);
     }
 
-    public void addSpriteVerticesToVertexBatcherTextured(float[] vertices) {
-        this.vertexBinder.setVerticesTextured(vertices);
-        verts += 6;
-    }
 
     public void depictPointsAndLines() {
 
@@ -132,15 +129,15 @@ public class VertexBatcher {
 
         this.vertexBinder.bindDataTexture();
 
-        this.vertexBinder.draw(GL_TRIANGLES, verts);
+        this.vertexBinder.draw(GL_TRIANGLES, vertsT);
         this.vertexBinder.unbindDataTexture();
 
-        verts = 0;
+        vertsT = 0;
     }
 
     public void clearVerticesBufferTexture() {
         this.vertexBinder.clearVerticesBufferTexture();
-        this.verts = 0;
+        this.vertsT = 0;
     }
 
     public void clearVerticesBufferColor_Markers() {
@@ -151,12 +148,12 @@ public class VertexBatcher {
 
     public void clearVerticesBufferColor() {
         this.vertexBinder.clearVerticesBufferColor();
-        this.verts = 0;
+        this.vertsC = 0;
     }
 
     public void addSpriteVerticesToVertexBatcherColored(float[] vertices) {
         this.vertexBinder.setVerticesColored(vertices);
-        this.verts += 6;
+        this.vertsC += 6;
     }
 
     public void depictSpritesColored() {
@@ -166,10 +163,119 @@ public class VertexBatcher {
 
         this.vertexBinder.bindDataColor();
 
-        this.vertexBinder.draw(GL_TRIANGLES, verts);
+        this.vertexBinder.draw(GL_TRIANGLES, vertsC);
         this.vertexBinder.unbindDataColor();
 
-        verts = 0;
+        vertsC = 0;
+    }
+
+    private float verticesBufferUI [] = new float[24];
+    private int bufferIndex = 0;
+
+    // it is like texturedSprite
+    public void drawGlyphSprite(float x, float y, float width, float height, TextureRegion region, Texture texture, float visible) {
+
+        this.bufferIndex = 0;
+
+        // + is upper attenuation
+        // - is lower attenuation
+        if (visible < 0) {
+            visible = visible - (2 * visible);
+
+            float x1 = x;
+            float y1 = y ;
+            float x2 = x + width;
+            float y2 = y + height * visible;
+
+
+            // 0
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v2;
+
+            // 1
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v2;
+
+            // 2
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / texture.height * (1 - visible);
+
+            // 2
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / texture.height * (1 - visible);
+
+            // 3
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / texture.height * (1 - visible);
+
+            // 0
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v2;
+
+
+        } else {
+            float x1 = x;
+            float y1 = y + height * (1 - visible);
+            float x2 = x + width;
+            float y2 = y + height;
+
+            // 0
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / region.texture.height * visible;
+
+            // 1
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / region.texture.height * visible;
+
+            // 2
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v1;
+
+            // 2
+            verticesBufferUI[bufferIndex++] = x2;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u2;
+            verticesBufferUI[bufferIndex++] = region.v1;
+
+            // 3
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y2;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v1;
+
+            // 0
+            verticesBufferUI[bufferIndex++] = x1;
+            verticesBufferUI[bufferIndex++] = y1;
+            verticesBufferUI[bufferIndex++] = region.u1;
+            verticesBufferUI[bufferIndex++] = region.v1 + region.height / region.texture.height * visible;
+
+        }
+
+        this.addSpriteVerticesToVertexBatcherTextured(verticesBufferUI);
+
+    }
+
+    public void addSpriteVerticesToVertexBatcherTextured(float[] vertices) {
+        this.vertexBinder.setVerticesTextured(vertices);
+        vertsT += 6;
     }
 
 }

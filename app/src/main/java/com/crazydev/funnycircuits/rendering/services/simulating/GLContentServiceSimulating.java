@@ -1,6 +1,9 @@
 package com.crazydev.funnycircuits.rendering.services.simulating;
 
+import android.util.Log;
+
 import com.crazydev.funnycircuits.electronic.math.DoubleArrayStructure;
+import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.OverlapTester;
 import com.crazydev.funnycircuits.math.Rectangle;
 import com.crazydev.funnycircuits.math.Vector2D;
@@ -29,6 +32,8 @@ public class GLContentServiceSimulating extends GLContentService {
 
     private DoubleArrayStructure doubleArrayStructure;
     private Vector3D color = new Vector3D(1, 0, 0);
+    private Vector3D colorGrid = new Vector3D(89.0f / 255.0f, 91.0f / 255.0f, 93.0f / 255.0f);
+    private Vector3D colorAxe = new Vector3D(43.0f / 255.0f, 43.0f / 255.0f, 43.0f / 255.0f);
 
     public GLContentServiceSimulating() {
         super();
@@ -42,8 +47,8 @@ public class GLContentServiceSimulating extends GLContentService {
         this.doubleArrayStructure = new DoubleArrayStructure();
 
         double dx = 1e-2;
-        for (int i = 0; i < 600; i ++) {
-            this.doubleArrayStructure.add(Math.cos(i * dx));
+        for (int i = 0; i < 350; i ++) {
+            this.doubleArrayStructure.add(Math.cos(i * dx * 4) * dx * i);
         }
     }
 
@@ -94,6 +99,8 @@ public class GLContentServiceSimulating extends GLContentService {
             this.items.add(item);
         }
 
+        this.recalculateSizes();
+
     }
 
     private float height;
@@ -115,9 +122,14 @@ public class GLContentServiceSimulating extends GLContentService {
         float h = shaderProgram.ACTUAL_HEIGHT;
 
         height = h / 14;
-        y_offset = h / 80;
-        heightItem = h / 4;
+        y_offset = h / 200;
+        heightItem = h / 2.5f;
         slider_offset = h / 80;
+
+        float dx = w / 300;
+        float side_offset = slider_offset * 1.2f;
+        float text_bottom_offset = h / 300;
+
 
         float x_c = shaderProgram.left   + (shaderProgram.right - shaderProgram.left  ) / 2;
         float y_c = shaderProgram.bottom + (shaderProgram.top   - shaderProgram.bottom) / 2;
@@ -156,7 +168,7 @@ public class GLContentServiceSimulating extends GLContentService {
         Item item;
 
         float y_center_item;
-        float dx = w / 300;
+
 
         for (int i = 0; i < this.items.size(); i ++) {
             item = this.items.get(i);
@@ -168,12 +180,15 @@ public class GLContentServiceSimulating extends GLContentService {
 
             item.rectangle.setRectangle(x_c, y_center_item, w, heightItem);
 
+            float y_before = item.rectangle.corners[3].y;
+
             if (OverlapTester.getOverlap(this.workingAreaRectangle, item.rectangle) != null) {
                 item.visible = true;
                 itemColoredSprite.setPosition(item.rectangle);
                 itemColoredSprite.draw();
 
-                float width = this.doubleArrayStructure.getTotalSize() * dx;
+                int ww = this.doubleArrayStructure.getTotalSize();
+                float width = (this.doubleArrayStructure.getTotalSize() + 20) * dx;
                 float start = shaderProgram.left;
                 float x_pos = start + item.xDItem * w;
                 float x_end = x_pos + width;
@@ -184,14 +199,93 @@ public class GLContentServiceSimulating extends GLContentService {
                     itemColoredSprite.xDItem = (shaderProgram.right - width - start) / w;
                 }*/
 
-                for (int j = 1; j < 600; j ++) {
-                    vertexBatcher.addLine( x_pos + dx * (j - 1), (float) (y_center_item + this.doubleArrayStructure.get(j - 1) * heightItem * 0.5f),
-                            x_pos + dx * j, (float) (y_center_item + this.doubleArrayStructure.get(j) * heightItem * 0.5f), this.color, 1.0f);
+                int offfset = (int) ((shaderProgram.left - x_pos) / dx);
+
+
+
+                for (int j = 3 + offfset / 10; j < offfset / 10 + 32; j ++) {
+                    vertexBatcher.addLine(x_pos + j * dx * 10, item.rectangle.corners[0].y + 2 * dx * 10,
+                                          x_pos + j * dx * 10, item.rectangle.corners[3].y,
+                                                colorGrid, 0.3f);
+
+                    if ((j - 2) % 5 == 0) {
+                        String label = (j - 2) / 10 + "";
+
+                        if ((j - 2) % 10 == 0) {
+                            label += " ms";
+                        } else {
+                            label += ".5 ms";
+                        }
+
+                        Assets.BLACK_FONT.drawTextCenteredUpper(label, x_pos + j * dx * 10,
+                                item.rectangle.corners[0].y + 2 * dx * 10 - text_bottom_offset,
+                                0.008f, 0.008f);
+                    }
+
 
                 }
 
-                float sliderWidth = workingWidth * workingWidth / width;
 
+                vertexBatcher.addLine(item.rectangle.corners[0].x + 2 * dx * 10, item.rectangle.corners[0].y + 1 * dx * 10,
+                        item.rectangle.corners[0].x + 2 * dx * 10, item.rectangle.corners[3].y,
+                        colorAxe, 0.9f);
+
+                int verticalAmount = (int) ((item.rectangle.corners[3].y - item.rectangle.corners[0].y) / (dx * 10));
+                for (int j = 2; j < verticalAmount + 1; j ++) {
+                     vertexBatcher.addLine(item.rectangle.corners[0].x + 2 * dx * 10, item.rectangle.corners[0].y + j * dx * 10,
+                             item.rectangle.corners[2].x, item.rectangle.corners[0].y + j * dx * 10,
+                             colorGrid, 0.3f);
+
+                }
+
+                int vv = (((int) (heightItem / (dx * 10))) - 1) / 2;
+
+                if (item.rectangle.corners[0].y +  (2 + vv) * dx * 10 <= handle_y_bottom) {
+                    vertexBatcher.addLine(item.rectangle.corners[0].x + 1 * dx * 10, item.rectangle.corners[0].y +  (2 + vv) * dx * 10,
+                            item.rectangle.corners[2].x, item.rectangle.corners[0].y + (2 + vv) * dx * 10,
+                            colorAxe, 0.9f);
+                }
+
+
+
+              //  Log.d("offfset", offfset + "");
+
+                float center_y_graph_line = item.rectangle.corners[0].y + (2 + vv) * dx * 10;
+                float hh = (vv - 1) * 10 * dx;
+                float absoluteMaxInverse = (float) (1 /  this.doubleArrayStructure.getAbsoluteMax());
+
+                int mm = ww > offfset + 300 ? offfset + 300 : ww;
+
+                if (y_before == item.rectangle.corners[3].y) {
+
+
+                    for (int j = offfset + 1; j < mm; j ++) {
+                        vertexBatcher.addLine( x_pos + dx * (j - 1) + ((2 * dx * 10)), (float) (center_y_graph_line + this.doubleArrayStructure.get(j - 1) * absoluteMaxInverse * hh),
+                                x_pos + dx * j  +((2 * dx * 10)), (float) (center_y_graph_line + this.doubleArrayStructure.get(j) * absoluteMaxInverse * hh), this.color, 1.0f);
+
+                    }
+                } else {
+
+                    for (int j = offfset + 1; j < mm; j ++) {
+
+                        float y_value = (float) (center_y_graph_line + this.doubleArrayStructure.get(j) * absoluteMaxInverse * hh);
+
+                        if (y_value - handle_y_bottom > height * 0.5f) {
+                            continue;
+                        }
+
+                        vertexBatcher.addLine( x_pos + dx * (j - 1) + ((2 * dx * 10)), (float) (center_y_graph_line + this.doubleArrayStructure.get(j - 1) * absoluteMaxInverse * hh),
+                                x_pos + dx * j + ((2 * dx * 10)), (float) (center_y_graph_line + this.doubleArrayStructure.get(j) * absoluteMaxInverse * hh), this.color, 1.0f);
+
+                    }
+
+                }
+
+
+
+                width += 0;
+
+                float sliderWidth = workingWidth * workingWidth / width;
                 if (sliderWidth < workingWidth) {
 
                     float x_posSlider   = shaderProgram.left + sliderWidth * 0.5f + slider_offset * 0.5f;
@@ -203,7 +297,6 @@ public class GLContentServiceSimulating extends GLContentService {
                     item.slider.draw();
 
                 }
-
 
             }
 
@@ -222,6 +315,22 @@ public class GLContentServiceSimulating extends GLContentService {
         }
 
 
+
+
+    //    this.vertexBatcher.depictSpritesTextured(Assets.UIsTexture);
+      //  this.vertexBatcher.clearVerticesBufferTexture();
+
+
+        this.vertexBatcher.depictSpritesColored();
+        this.vertexBatcher.clearVerticesBufferColor();
+
+        this.vertexBatcher.depictPointsAndLines();
+        this.vertexBatcher.clearVerticesBufferColor_Markers();
+
+
+        vertexBatcher.depictSpritesTextured(Assets.UIsTexture);
+        vertexBatcher.clearVerticesBufferTexture();
+
         ///
         this.handleRectangle.setRectangle(x_c, handle_y_center, w, height);
         this.handleColoredSprite.setPosition(this.handleRectangle);
@@ -230,9 +339,6 @@ public class GLContentServiceSimulating extends GLContentService {
 
         this.vertexBatcher.depictSpritesColored();
         this.vertexBatcher.clearVerticesBufferColor();
-
-        this.vertexBatcher.depictPointsAndLines();
-        this.vertexBatcher.clearVerticesBufferColor_Markers();
 
 
     }
@@ -267,7 +373,7 @@ public class GLContentServiceSimulating extends GLContentService {
         float curr_height = next_yDHandle * h;
 
         y_offset = h / 80;
-        heightItem = h / 4;
+        heightItem = h / 2.5f;
 
         handle_y_bottom = y_c + this.yDHandle * h - height * 0.5f;
         float x_u = handle_y_bottom + next_yDHandle * h;
@@ -303,7 +409,7 @@ public class GLContentServiceSimulating extends GLContentService {
         float nextXDItem = item.xDItem + xD / w;
         float next_width = nextXDItem * w;
 
-        float width = this.doubleArrayStructure.getTotalSize() * dx;
+        float width = (this.doubleArrayStructure.getTotalSize() + 20) * dx;
         float start = shaderProgram.left;
         float x_pos = start + next_width;
         float x_end = x_pos + width;
@@ -318,4 +424,7 @@ public class GLContentServiceSimulating extends GLContentService {
 
     }
 
+    void recalculateSizes() {
+
+    }
 }

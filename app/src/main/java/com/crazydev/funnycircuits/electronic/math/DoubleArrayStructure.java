@@ -9,11 +9,17 @@ public class DoubleArrayStructure {
     private double currentArray [];
     public int counter;
 
+    public double max;
+    public double min;
+
     public ArrayList<double[]> arrays = new ArrayList<double[]>();
 
     public DoubleArrayStructure() {
         this.currentArray = new double[LIMIT];
         this.arrays.add(this.currentArray);
+
+        this.max = Integer.MIN_VALUE;
+        this.min = Integer.MAX_VALUE;
 
     }
 
@@ -27,6 +33,15 @@ public class DoubleArrayStructure {
 
         this.currentArray[counter ++] = value;
 
+        if (value > max) {
+            max = value;
+        }
+
+        if (value < min) {
+            min = value;
+        }
+
+
     }
 
     public double get(int i) {
@@ -36,6 +51,18 @@ public class DoubleArrayStructure {
     public int getTotalSize() {
 
         return (this.arrays.size() - 1) * LIMIT + this.counter;
+    }
+
+    public double getAbsoluteMax() {
+        double m1 = Math.abs(this.max);
+        double m2 = Math.abs(this.min);
+
+        if (m1 > m2) {
+            return m1;
+        } else {
+            return m2;
+        }
+
     }
 
     public void tryToRelease() {

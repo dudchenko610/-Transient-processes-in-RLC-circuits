@@ -34,6 +34,7 @@ import com.crazydev.funnycircuits.events.OnWireSelectedListener;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
 import com.crazydev.funnycircuits.rendering.ShaderProgram;
+import com.crazydev.funnycircuits.views.CrazyImageView;
 import com.crazydev.funnycircuits.views.NumberPickerView;
 
 public class SchemaActivity extends AppCompatActivity implements
@@ -57,7 +58,11 @@ public class SchemaActivity extends AppCompatActivity implements
 
     private EditText editText;
     private Button button;
-    private ImageView deleteWireButton;
+
+    private CrazyImageView deleteWireButton;
+    private CrazyImageView addElementButton;
+    private CrazyImageView startCalculation;
+    private CrazyImageView stopCalculation;
 
     private NumberPickerView numberPickerView;
     private CheckBox cbCurrent, cbVoltage, cbCharge, cbLinkage;
@@ -104,9 +109,28 @@ public class SchemaActivity extends AppCompatActivity implements
 
         this.editText = (EditText) findViewById(R.id.branch_number);
         this.button   = (Button) findViewById(R.id.ok);
-        this.button.setVisibility(View.GONE);
-        this.editText.setVisibility(View.GONE);
-        this.deleteWireButton = (ImageView) findViewById(R.id.delete_wire);
+    //    this.button.setVisibility(View.GONE);
+     //   this.editText.setVisibility(View.GONE);
+
+
+        this.deleteWireButton = (CrazyImageView) findViewById(R.id.delete_wire);
+        this.deleteWireButton.setDrawables(R.drawable.basket, R.drawable.basketbr);
+        this.deleteWireButton.setEnabled(false);
+        this.deleteWireButton.setOnClickListener(this);
+
+        this.addElementButton = (CrazyImageView) findViewById(R.id.add_element);
+        this.addElementButton.setDrawables(R.drawable.plus, R.drawable.plusbr);
+        this.addElementButton.setOnClickListener(this);
+
+        this.startCalculation = (CrazyImageView) findViewById(R.id.start_calculating);
+        this.startCalculation.setDrawables(R.drawable.play, R.drawable.playbr);
+        this.startCalculation.setEnabled(true);
+        this.startCalculation.setOnClickListener(this);
+
+        this.stopCalculation = (CrazyImageView) findViewById(R.id.stop_calculating);
+        this.stopCalculation.setDrawables(R.drawable.stop, R.drawable.stopbr);
+        this.stopCalculation.setEnabled(false);
+        this.stopCalculation.setOnClickListener(this);
 
         this.button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -245,22 +269,29 @@ public class SchemaActivity extends AppCompatActivity implements
     }
 
 
-    // FROM LAYOUT
+    private void onStartCalculating() {
 
-    public void onDeleteWire(View v) {
-        this.openGLRenderer.deleteSelectedWires();
-        this.uiThreadSynchronizer.freeUpScreen();
-    }
+        this.freeUpScreen();
 
-    public void onStartCalculating(View v) {
+        this.startCalculation.setEnabled(false);
+        this.stopCalculation.setEnabled(true);
+        this.deleteWireButton.setEnabled(false);
+        this.addElementButton.setEnabled(false);
 
         this.electronicWorld.startSimulation();
         this.openGLRenderer.setSimulatingMode();
+
+
+
       //  ApplicationMode.setSimulatingMode();
 
     }
 
-    public void onStopCalculating(View v) {
+    private void onStopCalculating() {
+
+        this.startCalculation.setEnabled(true);
+        this.stopCalculation.setEnabled(false);
+        this.addElementButton.setEnabled(true);
 
         this.electronicWorld.stopSimulation();
         this.openGLRenderer.setEditingMode();
@@ -268,11 +299,6 @@ public class SchemaActivity extends AppCompatActivity implements
 
     }
 
-    public void onAddElement(View v) {
-        Intent intent = new Intent(SchemaActivity.this, AddElementActivity.class);
-        startActivityForResult(intent, REQUEST_CODE_ADD_ELEMENT_ACTIVITY);
-
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -345,6 +371,30 @@ public class SchemaActivity extends AppCompatActivity implements
     @Override
     public void onClick(View view) {
 
+        switch (view.getId()) {
+            case R.id.delete_wire:
+                this.openGLRenderer.deleteSelectedWires();
+                this.uiThreadSynchronizer.freeUpScreen();
+                break;
+
+            case R.id.add_element:
+
+                this.openGLRenderer.getTouchEventService().setWireMode(this.isWireMode = false);
+                Intent intent = new Intent(SchemaActivity.this, AddElementActivity.class);
+                startActivityForResult(intent, REQUEST_CODE_ADD_ELEMENT_ACTIVITY);
+                break;
+
+            case R.id.start_calculating:
+                onStartCalculating();
+
+                break;
+            case R.id.stop_calculating:
+
+                onStopCalculating();
+
+                break;
+        }
+
         if (selectedWire instanceof ILoggable) {
             ILoggable loggable = (ILoggable) selectedWire;
 
@@ -363,11 +413,27 @@ public class SchemaActivity extends AppCompatActivity implements
                 case R.id.cb_linkage:
                     loggable.setLinkageLogState(this.cbLinkage.isChecked());
                     break;
+
+
             }
 
         }
 
 
+    }
+
+    private void freeUpScreen() {
+        this.numberPickerView.setVisibility(View.GONE);
+
+        this.cbCurrent.setChecked(false);
+        this.cbCharge.setChecked(false);
+        this.cbVoltage.setChecked(false);
+        this.cbLinkage.setChecked(false);
+
+        this.cbCurrent.setVisibility(View.GONE);
+        this.cbCharge.setVisibility(View.GONE);
+        this.cbVoltage.setVisibility(View.GONE);
+        this.cbLinkage.setVisibility(View.GONE);
     }
 
     public static class UIThreadSynchronizer extends Handler {
@@ -382,11 +448,9 @@ public class SchemaActivity extends AppCompatActivity implements
         public void handleMessage(Message msg) {
             switch(msg.what) {
                 case 0:
-                    schemaActivity.deleteWireButton.setImageResource(R.drawable.basketbr);
                     schemaActivity.deleteWireButton.setEnabled(false);
                     break;
                 case 1:
-                    schemaActivity.deleteWireButton.setImageResource(R.drawable.basket);
                     schemaActivity.deleteWireButton.setEnabled(true);
                     break;
 
@@ -446,17 +510,7 @@ public class SchemaActivity extends AppCompatActivity implements
                     break;
                     // free up screen
                 case 3:
-                    schemaActivity.numberPickerView.setVisibility(View.GONE);
-
-                    schemaActivity.cbCurrent.setChecked(false);
-                    schemaActivity.cbCharge.setChecked(false);
-                    schemaActivity.cbVoltage.setChecked(false);
-                    schemaActivity.cbLinkage.setChecked(false);
-
-                    schemaActivity.cbCurrent.setVisibility(View.GONE);
-                    schemaActivity.cbCharge.setVisibility(View.GONE);
-                    schemaActivity.cbVoltage.setVisibility(View.GONE);
-                    schemaActivity.cbLinkage.setVisibility(View.GONE);
+                    schemaActivity.freeUpScreen();
 
                     break;
             }

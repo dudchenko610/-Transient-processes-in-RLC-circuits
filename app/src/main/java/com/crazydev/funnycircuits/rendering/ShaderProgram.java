@@ -239,6 +239,13 @@ public class ShaderProgram {
         return this.position;
     }
 
+    private Vector2D pos = new Vector2D();
+
+    public Vector2D touchToWorld_no_changes(TouchEvent event) {
+        return pos.set((event.x / (float) parentViewWidth) * ACTUAL_START_WIDTH * zoom,
+                (1 - event.y / (float) parentViewHeight ) * ACTUAL_START_HEIGHT * zoom);
+    }
+
     public void touchToWorld(TouchEvent event) {
         event.touchPosition.set((event.x / (float) parentViewWidth) * ACTUAL_START_WIDTH * zoom,
                                 (1 - event.y / (float) parentViewHeight ) * ACTUAL_START_HEIGHT * zoom);

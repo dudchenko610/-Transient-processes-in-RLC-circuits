@@ -229,6 +229,7 @@ public class World {
                 this.checkWire(wire.nodeA.location, wire.nodeB.location);
                 i --;
             }
+            wire.isChecked = false;
         }
 
         this.simplifyConnectedWires();
@@ -388,9 +389,9 @@ public class World {
 
     public void underlineBranch(int m, int n) {
 
-        simplifyConnectedWires();
+      //  simplifyConnectedWires();
 
-      /*  Graph graph = this.graphs.get(m);
+        Graph graph = this.graphs.get(m);
         Circuit circuit = graph.circuits.get(n);
 
 
@@ -401,7 +402,7 @@ public class World {
            for (Wire wire : branch.wires) {
                wire.select();
            }
-        }*/
+        }
 
 
     }
@@ -434,6 +435,21 @@ public class World {
             node.draw();
 
         }
+
+        /**
+         *
+         * E/AndroidRuntime: FATAL EXCEPTION: GLThread 9604
+         *     Process: com.crazydev.funnycircuits, PID: 31854
+         *     java.util.ConcurrentModificationException
+         *         at java.util.HashMap$HashIterator.nextEntry(HashMap.java:787)
+         *         at java.util.HashMap$EntryIterator.next(HashMap.java:824)
+         *         at java.util.HashMap$EntryIterator.next(HashMap.java:822)
+         *         at com.crazydev.funnycircuits.electronic.World.draw(World.java:431)
+         *         at com.crazydev.funnycircuits.rendering.services.GLContentService.drawContent(GLContentService.java:38)
+         *         at com.crazydev.funnycircuits.rendering.OpenGLRenderer.onDrawFrame(OpenGLRenderer.java:169)
+         *         at android.opengl.GLSurfaceView$GLThread.guardedRun(GLSurfaceView.java:1647)
+         *         at android.opengl.GLSurfaceView$GLThread.run(GLSurfaceView.java:1352)
+         */
 
         vertexBatcher.depictSpritesTextured(Assets.elements);
 
