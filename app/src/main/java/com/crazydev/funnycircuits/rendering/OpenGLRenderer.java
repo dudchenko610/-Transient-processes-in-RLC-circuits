@@ -106,11 +106,13 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
         this.openGLRendererTouchEventListener = new OpenGLRendererTouchEventListener();
         this.setOnTouchListener(openGLRendererTouchEventListener);
 
-        this.touchEventServiceEditing = new TouchEventService(this.openGLRendererTouchEventListener, this);
-        this.touchEventServiceSimulating = new TouchEventServiceSimulating(this.openGLRendererTouchEventListener, this);
-
         this.glContentServiceEditing = new GLContentService();
         this.glContentServiceSimulating = new GLContentServiceSimulating();
+
+        this.touchEventServiceEditing = new TouchEventService(this.openGLRendererTouchEventListener, this);
+        this.touchEventServiceSimulating = new TouchEventServiceSimulating(this.openGLRendererTouchEventListener, this, (GLContentServiceSimulating) this.glContentServiceSimulating);
+
+
 
         this.setEditingMode();
 
@@ -153,6 +155,7 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
 
         if (state == GLGameState.Running) {
 
+            vertexBatcher.clearVerticesBufferColor();
             vertexBatcher.clearVerticesBufferColor_Markers();
             vertexBatcher.clearVerticesBufferTexture();
 
@@ -162,17 +165,15 @@ public class OpenGLRenderer extends GLSurfaceView  implements  GLSurfaceView.Ren
             // handle
             this.touchEventService.handleTouchEvents();
 
-
             // draw content
             this.glContentService.drawContent();
-
-            this.electronicWorld.draw();
 
             vertexBatcher.clearVerticesBufferColor_Markers();
 
             GLES20.glLineWidth(2.0f);
             this.touchEventService.depictCreatingElement();
             vertexBatcher.depictPointsAndLines();
+
 
 
         }

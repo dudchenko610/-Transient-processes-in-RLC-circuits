@@ -29,6 +29,15 @@ public class DoubleArrayStructure {
 
     }
 
+    public double get(int i) {
+        return this.arrays.get(i / LIMIT)[i % LIMIT];
+    }
+
+    public int getTotalSize() {
+
+        return (this.arrays.size() - 1) * LIMIT + this.counter;
+    }
+
     public void tryToRelease() {
         this.counter = 0;
         this.arrays = null;

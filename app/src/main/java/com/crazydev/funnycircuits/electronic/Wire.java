@@ -1,20 +1,11 @@
 package com.crazydev.funnycircuits.electronic;
 
-import android.util.Log;
-
-import com.crazydev.funnycircuits.electronic.elements.Capacitor;
-import com.crazydev.funnycircuits.electronic.elements.Inductor;
-import com.crazydev.funnycircuits.electronic.elements.Resistor;
 import com.crazydev.funnycircuits.electronic.interfaces.IDrawableManager;
 import com.crazydev.funnycircuits.electronic.managers.DrawableManager;
-import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.Rectangle;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.ColoredSprite;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
-import com.crazydev.funnycircuits.rendering.Sprite;
-import com.crazydev.funnycircuits.rendering.TexturedSprite;
+import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite;
 import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.HashMap;

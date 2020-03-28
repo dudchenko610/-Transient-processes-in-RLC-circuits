@@ -1,16 +1,12 @@
 package com.crazydev.funnycircuits.electronic.elements;
 
-import android.util.Log;
-
 import com.crazydev.funnycircuits.electronic.Node;
 import com.crazydev.funnycircuits.electronic.Wire;
 import com.crazydev.funnycircuits.electronic.World;
 import com.crazydev.funnycircuits.electronic.managers.DrawableManager;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.ColoredSprite;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
-import com.crazydev.funnycircuits.rendering.Sprite;
+import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite;
 
 public class DCSource extends Wire {
 

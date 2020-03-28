@@ -1,6 +1,9 @@
-package com.crazydev.funnycircuits.rendering;
+package com.crazydev.funnycircuits.rendering.sprites;
 
 import com.crazydev.funnycircuits.math.Vector2D;
+import com.crazydev.funnycircuits.rendering.TextureRegion;
+import com.crazydev.funnycircuits.rendering.VertexBatcher;
+import com.crazydev.funnycircuits.rendering.sprites.Sprite;
 
 public class TexturedSprite extends Sprite {
 

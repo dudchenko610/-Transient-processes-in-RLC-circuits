@@ -1,13 +1,12 @@
 package com.crazydev.funnycircuits.rendering.services;
 
-import android.graphics.Shader;
-
+import com.crazydev.funnycircuits.electronic.World;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
 import com.crazydev.funnycircuits.rendering.ShaderProgram;
-import com.crazydev.funnycircuits.rendering.Sprite;
-import com.crazydev.funnycircuits.rendering.TexturedSprite;
+import com.crazydev.funnycircuits.rendering.sprites.Sprite;
+import com.crazydev.funnycircuits.rendering.sprites.TexturedSprite;
 import com.crazydev.funnycircuits.rendering.VertexBatcher;
 import com.crazydev.funnycircuits.rendering.interfaces.IGLContentService;
 
@@ -15,17 +14,19 @@ import java.util.HashMap;
 
 public class GLContentService implements IGLContentService {
 
-    private HashMap<String, Sprite> numbersSprites = new HashMap<String, Sprite>();
-    private ShaderProgram shaderProgram;
-    private VertexBatcher vertexBatcher;
+    protected HashMap<String, Sprite> numbersSprites = new HashMap<String, Sprite>();
+    protected ShaderProgram shaderProgram;
+    protected VertexBatcher vertexBatcher;
+    protected World electronicWorld;
 
-    private float [] axesVerts = {-20000, 0, 20000, 0, 0, -20000, 0, 20000};
-    private Vector3D axesColor = new Vector3D(200 / 255.0f, 200 / 255.0f, 200 / 255.0f); // 128
-    private Vector3D gridColor = new Vector3D(230 / 255.0f, 230 / 255.0f, 230 / 255.0f);
+    protected float [] axesVerts = {-20000, 0, 20000, 0, 0, -20000, 0, 20000};
+    protected Vector3D axesColor = new Vector3D(200 / 255.0f, 200 / 255.0f, 200 / 255.0f); // 128
+    protected Vector3D gridColor = new Vector3D(230 / 255.0f, 230 / 255.0f, 230 / 255.0f);
 
     public GLContentService() {
-        this.shaderProgram = ShaderProgram.getInstance();
-        this.vertexBatcher = VertexBatcher.getInstance();
+        this.shaderProgram   = ShaderProgram.getInstance();
+        this.vertexBatcher   = VertexBatcher.getInstance();
+        this.electronicWorld = World.getInstance();
     }
 
     @Override
@@ -33,6 +34,8 @@ public class GLContentService implements IGLContentService {
         this.depictDecartGrid();
         vertexBatcher.depictPointsAndLines();
         vertexBatcher.depictSpritesTextured(Assets.digits);
+        this.electronicWorld.draw();
+
     }
 
     @Override
@@ -65,8 +68,7 @@ public class GLContentService implements IGLContentService {
         numbersSprites.put("p", sprite);
     }
 
-
-    private void depictDecartGrid() {
+    protected void depictDecartGrid() {
 
         float w = shaderProgram.ACTUAL_WIDTH;
         float h = shaderProgram.ACTUAL_HEIGHT;
@@ -263,7 +265,7 @@ public class GLContentService implements IGLContentService {
 
     }
 
-    private void depictNumber(String num, float x, float y, float w, float h) {
+    protected void depictNumber(String num, float x, float y, float w, float h) {
 
         float offset = 0;
         Sprite sprite;

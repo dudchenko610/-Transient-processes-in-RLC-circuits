@@ -1,24 +1,15 @@
 package com.crazydev.funnycircuits.electronic;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
-import com.crazydev.funnycircuits.rendering.Sprite;
-import com.crazydev.funnycircuits.rendering.TexturedSprite;
+import com.crazydev.funnycircuits.rendering.sprites.Sprite;
+import com.crazydev.funnycircuits.rendering.sprites.TexturedSprite;
 import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 public class Node {

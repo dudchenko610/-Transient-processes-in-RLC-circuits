@@ -10,9 +10,8 @@ import com.crazydev.funnycircuits.electronic.managers.DrawableManager;
 import com.crazydev.funnycircuits.electronic.managers.LoggerManager;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.ColoredSprite;
-import com.crazydev.funnycircuits.rendering.ColoredSprite_XY_Tr;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
+import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite;
+import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite_XY_Tr;
 
 public class Inductor extends Wire implements ILoggable {
 

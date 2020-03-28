@@ -69,6 +69,16 @@ public class Rectangle {
         corners[3].set(center).add(-halfWidth,  halfHeight);
     }
 
+    public void setRectangle(float x, float y, float width, float height) {
+        float halfWidth  = (float) width / 2;
+        float halfHeight = (float) height / 2;
+
+        corners[0].set(x, y).add(-halfWidth, -halfHeight);
+        corners[1].set(x, y).add( halfWidth, -halfHeight);
+        corners[2].set(x, y).add( halfWidth,  halfHeight);
+        corners[3].set(x, y).add(-halfWidth,  halfHeight);
+    }
+
     @Override
     public String toString() {
         return "RECTANGLE: P0: " + corners[0].toString() +

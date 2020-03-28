@@ -1,7 +1,7 @@
 package com.crazydev.funnycircuits.electronic.managers;
 
 import com.crazydev.funnycircuits.electronic.interfaces.IDrawableManager;
-import com.crazydev.funnycircuits.rendering.Sprite;
+import com.crazydev.funnycircuits.rendering.sprites.Sprite;
 
 import java.util.ArrayList;
 

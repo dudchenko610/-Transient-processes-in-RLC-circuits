@@ -10,8 +10,7 @@ import com.crazydev.funnycircuits.electronic.managers.DrawableManager;
 import com.crazydev.funnycircuits.electronic.managers.LoggerManager;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.ColoredSprite;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
+import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite;
 
 public class Capacitor extends Wire implements ILoggable {
 

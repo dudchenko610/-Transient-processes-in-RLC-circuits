@@ -21,7 +21,7 @@ public class TouchEventService implements ITouchEventService {
     private ITouchEventService.OnTouchEventsListener onTouchEventsListener;
 
     private OpenGLRendererTouchEventListener openGLRendererTouchEventListener;
-    private ShaderProgram shaderProgram;
+    protected ShaderProgram shaderProgram;
     private World electronicWorld;
 
     private boolean handleTouchEvents;
