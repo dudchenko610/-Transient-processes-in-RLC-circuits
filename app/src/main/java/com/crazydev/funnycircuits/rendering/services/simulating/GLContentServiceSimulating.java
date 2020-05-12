@@ -1,8 +1,6 @@
 package com.crazydev.funnycircuits.rendering.services.simulating;
 
-import android.util.Log;
-
-import com.crazydev.funnycircuits.electronic.math.DoubleArrayStructure;
+import com.crazydev.funnycircuits.electronic.structuresbuilding.DoubleArrayStructure;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.OverlapTester;
 import com.crazydev.funnycircuits.math.Rectangle;
@@ -10,7 +8,6 @@ import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.math.Vector3D;
 import com.crazydev.funnycircuits.rendering.sprites.ColoredSprite;
 import com.crazydev.funnycircuits.rendering.services.GLContentService;
-import com.crazydev.funnycircuits.rendering.sprites.ItemColoredSprite;
 
 import java.util.ArrayList;
 

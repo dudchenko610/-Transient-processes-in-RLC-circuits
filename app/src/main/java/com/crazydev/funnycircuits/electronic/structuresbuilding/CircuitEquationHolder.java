@@ -1,6 +1,4 @@
-package com.crazydev.funnycircuits.electronic.math;
-
-import android.util.Log;
+package com.crazydev.funnycircuits.electronic.structuresbuilding;
 
 import com.crazydev.funnycircuits.electronic.Branch;
 import com.crazydev.funnycircuits.electronic.Circuit;

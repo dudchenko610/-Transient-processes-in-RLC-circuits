@@ -21,6 +21,7 @@ public class DCSource extends Wire {
         super(world, nodeA, nodeB, orientation);
         this.type        = WireType.DC_SOURCE;
         this.isSource    = true;
+        this.label = "E";
 
         switch (orientation) {
             case 0:

@@ -45,7 +45,8 @@ public class SchemaActivity extends AppCompatActivity implements
     public static final String PARCELABLE_KEY_VIEWPOINT_TRANSLATION_Y = "viewpoint_translation_ley_y";
     public static final String PARCELABLE_KEY_VIEWPOINT_ZOOM          = "viewpoint_zoom_ley";
 
-    public static final int REQUEST_CODE_ADD_ELEMENT_ACTIVITY = 0;
+    public static final int REQUEST_CODE_ADD_ELEMENT_ACTIVITY     = 0;
+    public static final int REQUEST_CODE_INSPECT_ELEMENT_ACTIVITY = 1;
 
     protected Toolbar         toolbar;
     protected OpenGLRenderer  openGLRenderer;
@@ -249,6 +250,13 @@ public class SchemaActivity extends AppCompatActivity implements
             case R.id.action_delete:
                 this.openGLRenderer.deleteSelectedWires();
                 break;
+            case R.id.action_inspect:
+                if (this.selectedWire != null) {
+                    Intent intent = new Intent(this, InspectElementActivity.class);
+                    intent.putExtra("label", this.selectedWire.label);
+                    startActivityForResult(intent, REQUEST_CODE_INSPECT_ELEMENT_ACTIVITY);
+                }
+                break;
         }
 
         return super.onContextItemSelected(item);
@@ -327,6 +335,15 @@ public class SchemaActivity extends AppCompatActivity implements
                 } else if (type.equals("Inductor")) {
                     this.electronicWorld.createElement(new Vector2D(Math.round(pos.x), Math.round(pos.y)), Wire.WireType.INDUCTOR, orientation);
                 }
+
+                break;
+            case REQUEST_CODE_INSPECT_ELEMENT_ACTIVITY:
+                String label = data.getStringExtra("label");
+          //      if (this.selectedWire != null) {
+                    this.selectedWire.label = label;
+                //    Log.d("gggg", "data came = " + label);
+            //    }
+
 
                 break;
         }

@@ -1,11 +1,9 @@
 package com.crazydev.funnycircuits.rendering.services.simulating;
 
-import com.crazydev.funnycircuits.electronic.math.DoubleArrayStructure;
 import com.crazydev.funnycircuits.math.OverlapTester;
 import com.crazydev.funnycircuits.math.Vector2D;
 import com.crazydev.funnycircuits.rendering.OpenGLRendererTouchEventListener;
 import com.crazydev.funnycircuits.rendering.services.TouchEventService;
-import com.crazydev.funnycircuits.rendering.sprites.ItemColoredSprite;
 import com.crazydev.funnycircuits.views.eventhandling.Input;
 
 import java.util.ArrayList;

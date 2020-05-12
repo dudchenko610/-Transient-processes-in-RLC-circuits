@@ -43,6 +43,7 @@ public class Inductor extends Wire implements ILoggable {
     public Inductor(World world, Node nodeA, Node nodeB, int orientation) {
         super(world, nodeA, nodeB, orientation);
         this.type = WireType.INDUCTOR;
+        this.label = "L";
 
     }
 

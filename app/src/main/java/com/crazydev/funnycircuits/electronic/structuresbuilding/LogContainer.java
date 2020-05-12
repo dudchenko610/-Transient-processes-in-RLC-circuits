@@ -1,4 +1,4 @@
-package com.crazydev.funnycircuits.electronic.math;
+package com.crazydev.funnycircuits.electronic.structuresbuilding;
 
 import com.crazydev.funnycircuits.electronic.Graph;
 import com.crazydev.funnycircuits.electronic.managers.LoggerManager;

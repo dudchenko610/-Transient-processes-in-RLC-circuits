@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 public class Wire {
 
+    public String label = "";
 
     protected VertexBatcher vertexBatcher;
     public enum WireType {

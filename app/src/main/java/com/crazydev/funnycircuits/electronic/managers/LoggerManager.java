@@ -1,10 +1,9 @@
 package com.crazydev.funnycircuits.electronic.managers;
 
 import com.crazydev.funnycircuits.electronic.Graph;
-import com.crazydev.funnycircuits.electronic.interfaces.ILoggable;
 import com.crazydev.funnycircuits.electronic.interfaces.ILoggerManager;
-import com.crazydev.funnycircuits.electronic.math.DoubleArrayStructure;
-import com.crazydev.funnycircuits.electronic.math.LogContainer;
+import com.crazydev.funnycircuits.electronic.structuresbuilding.DoubleArrayStructure;
+import com.crazydev.funnycircuits.electronic.structuresbuilding.LogContainer;
 
 public abstract class LoggerManager implements ILoggerManager {
 

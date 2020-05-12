@@ -1,4 +1,4 @@
-package com.crazydev.funnycircuits.electronic.math;
+package com.crazydev.funnycircuits.electronic.structuresbuilding;
 
 import java.util.ArrayList;
 

@@ -1,35 +1,28 @@
-package com.crazydev.funnycircuits.electronic.math;
+package com.crazydev.funnycircuits.electronic.structuresbuilding;
 
 import android.util.Log;
 
 import com.crazydev.funnycircuits.electronic.Branch;
-import com.crazydev.funnycircuits.electronic.Circuit;
 import com.crazydev.funnycircuits.electronic.Graph;
 import com.crazydev.funnycircuits.electronic.Node;
-import com.crazydev.funnycircuits.electronic.Wire;
-import com.crazydev.funnycircuits.electronic.elements.DCSource;
-import com.crazydev.funnycircuits.electronic.elements.Resistor;
+import com.crazydev.funnycircuits.electronic.math.DifferentialSystemSolver;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Random;
 
 public class Calculator {
 
-    private Graph graph;
+    public Graph graph;
 
     protected double [][] matrix1;
 
-    private ArrayList<Node>   nodes;
-    protected ArrayList<Branch> branches;
+    public ArrayList<Node>   nodes;
+    public ArrayList<Branch> branches;
 
-    protected int nodesAmount;
-    protected int independentCircuitsAmount;
-    protected int currentsAmount;
+    public int nodesAmount;
+    public int independentCircuitsAmount;
+    public int currentsAmount;
 
-    private ArrayList<CircuitEquationHolder> equations;
+    public ArrayList<CircuitEquationHolder> equations;
 
     public Calculator(Graph graph) {
         this.graph = graph;
@@ -47,9 +40,12 @@ public class Calculator {
 
         this.matrix1 = new double[this.currentsAmount][this.currentsAmount + 1];
 
+        DifferentialSystemSolver differentialSystemSolver = new DifferentialSystemSolver(this);
+     //   differentialSystemSolver.render();
+
         /** 1. Fill up part of matrix with currents**/
 
-        Node node;
+      /*  Node node;
         for (int i = 0; i < this.nodesAmount - 1; i ++) {
             node = this.nodes.get(i);
 
@@ -74,15 +70,13 @@ public class Calculator {
             }
 
         }
-
+*/
         /** 2. Fill part of matrix with voltages **/
 
-        for (int i = 0; i < graph.circuits.size(); i ++) {
+       /* for (int i = 0; i < graph.circuits.size(); i ++) {
             this.equations.add(new CircuitEquationHolder(this, graph.circuits.get(i), i + this.nodesAmount - 1));
-        }
+        */
 
-
-        this.calculate();
     }
 
     public void calculate() {

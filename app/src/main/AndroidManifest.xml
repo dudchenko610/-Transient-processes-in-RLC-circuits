@@ -32,6 +32,11 @@
             android:windowSoftInputMode="stateHidden">
         </activity>
 
+        <activity
+            android:name=".InspectElementActivity"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
+
     </application>
 
 </manifest>

@@ -1,7 +1,6 @@
 package com.crazydev.funnycircuits.electronic.interfaces;
 
 import com.crazydev.funnycircuits.electronic.Graph;
-import com.crazydev.funnycircuits.electronic.math.LogContainer;
 
 public interface ILoggerManager {
 

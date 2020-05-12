@@ -29,6 +29,8 @@ public class Branch {
 
     public double current = 0;
 
+    public boolean containsActiveElements = false;
+
     public Branch() {
         this.hash_id = ID ++;
     }
@@ -187,6 +189,15 @@ public class Branch {
             throw new RuntimeException("Pizdets!");
         }
 
+    }
+
+    public void analyze() {
+        for (Wire wire : this.wires) {
+            if (wire.type == Wire.WireType.CAPACITOR || wire.type == Wire.WireType.INDUCTOR) {
+                this.containsActiveElements = true;
+                break;
+            }
+        }
     }
 
 }

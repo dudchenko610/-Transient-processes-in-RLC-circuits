@@ -1,17 +1,13 @@
 package com.crazydev.funnycircuits.electronic;
 
-import android.util.Log;
-
 import com.crazydev.funnycircuits.electronic.elements.Capacitor;
 import com.crazydev.funnycircuits.electronic.elements.DCSource;
 import com.crazydev.funnycircuits.electronic.elements.Inductor;
 import com.crazydev.funnycircuits.electronic.elements.Resistor;
-import com.crazydev.funnycircuits.electronic.math.Calculator;
+import com.crazydev.funnycircuits.electronic.structuresbuilding.Calculator;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.OverlapTester;
 import com.crazydev.funnycircuits.math.Vector2D;
-import com.crazydev.funnycircuits.math.Vector3D;
-import com.crazydev.funnycircuits.rendering.OpenGLRenderer;
 import com.crazydev.funnycircuits.rendering.VertexBatcher;
 
 import java.util.ArrayList;
@@ -19,7 +15,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 public class World {
@@ -380,7 +375,6 @@ public class World {
     public void startSimulation() {
         this.buildGraphs();
 
-
     }
 
     public void stopSimulation() {
@@ -391,11 +385,14 @@ public class World {
 
       //  simplifyConnectedWires();
 
+        this.buildGraphs();
+
         Graph graph = this.graphs.get(m);
         Circuit circuit = graph.circuits.get(n);
 
 
         Calculator calculator = new Calculator(graph);
+     //   calculator.calculate();
 
 
         for (Branch branch : circuit.branches) {

@@ -44,6 +44,7 @@ public class Resistor extends Wire implements ILoggable {
     public Resistor(World world, Node nodeA, Node nodeB) {
         super(world, nodeA, nodeB);
         this.type = WireType.RESISTOR;
+        this.label = "R";
 
     }
 

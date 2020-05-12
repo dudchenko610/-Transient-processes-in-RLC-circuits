@@ -43,7 +43,7 @@ public class Capacitor extends Wire implements ILoggable {
     public Capacitor(World world, Node nodeA, Node nodeB) {
         super(world, nodeA, nodeB);
         this.type = WireType.CAPACITOR;
-
+        this.label = "C";
 
     }
 
