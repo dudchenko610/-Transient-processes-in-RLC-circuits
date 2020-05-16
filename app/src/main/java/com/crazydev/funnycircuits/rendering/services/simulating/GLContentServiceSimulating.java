@@ -44,8 +44,8 @@ public class GLContentServiceSimulating extends GLContentService {
         this.doubleArrayStructure = new DoubleArrayStructure();
 
         double dx = 1e-2;
-        for (int i = 0; i < 350; i ++) {
-            this.doubleArrayStructure.add(Math.cos(i * dx * 4) * dx * i);
+        for (int i = 0; i < 500; i ++) {
+            this.doubleArrayStructure.add(Math.cos(i * dx * 4) * dx * i * i);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.crazydev.funnycircuits.electronic.math;
+package com.crazydev.funnycircuits.electronic.oldmath;
 
 import com.crazydev.funnycircuits.electronic.Branch;
 import com.crazydev.funnycircuits.electronic.Wire;

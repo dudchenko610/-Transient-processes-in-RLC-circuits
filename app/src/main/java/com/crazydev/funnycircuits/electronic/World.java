@@ -359,9 +359,14 @@ public class World {
 
         /**   4. Exclude hanging nodes in graphs  **/
         for (Graph g : this.graphs) {
+
             g.eliminateNodesWithHangingBranches();
             g.findRealNodesAndBranches();
+
+            // find directions of wires relative to branches
             g.rearrangeWiresInBranchesInCircuits();
+
+            // find directions of branches relative to circuits
             g.rearrangeBranchesInCircuits();
 
         }

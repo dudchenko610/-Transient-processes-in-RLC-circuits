@@ -1,4 +1,4 @@
-package com.crazydev.funnycircuits.electronic.math;
+package com.crazydev.funnycircuits.electronic.oldmath;
 
 import android.util.Log;
 
@@ -29,7 +29,7 @@ public class DifferentialSystemSolver {
 
         render();
 
-        excludeVoltagesAndCurrentsOfResistiveElements();
+    //    excludeVoltagesAndCurrentsOfResistiveElements();
 
     }
 
@@ -41,8 +41,9 @@ public class DifferentialSystemSolver {
     }
 
     private void buildSystemWithKirchhoffRules() {
+
         // Правила Кирхгофа
-        /** 1. Fill up part of matrix with currents**/
+        /** 1. Fill up part of matrix with currents **/
 
         Node node;
         for (int i = 0; i < calculator.nodesAmount - 1; i ++) {

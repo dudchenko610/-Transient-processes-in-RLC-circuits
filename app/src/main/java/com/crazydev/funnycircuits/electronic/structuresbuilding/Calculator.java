@@ -5,7 +5,7 @@ import android.util.Log;
 import com.crazydev.funnycircuits.electronic.Branch;
 import com.crazydev.funnycircuits.electronic.Graph;
 import com.crazydev.funnycircuits.electronic.Node;
-import com.crazydev.funnycircuits.electronic.math.DifferentialSystemSolver;
+import com.crazydev.funnycircuits.electronic.oldmath.DifferentialSystemSolver;
 
 import java.util.ArrayList;
 
