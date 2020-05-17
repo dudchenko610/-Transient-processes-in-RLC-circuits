@@ -45,7 +45,7 @@ public class Calculator {
 
         /** 1. Fill up part of matrix with currents**/
 
-      /*  Node node;
+      /*  Expression node;
         for (int i = 0; i < this.nodesAmount - 1; i ++) {
             node = this.nodes.get(i);
 

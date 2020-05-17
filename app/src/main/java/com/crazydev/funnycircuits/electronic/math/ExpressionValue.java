@@ -2,12 +2,12 @@ package com.crazydev.funnycircuits.electronic.math;
 
 import com.crazydev.funnycircuits.electronic.math.exceptions.ComputationException;
 
-public class NodeValue extends Node {
+public class ExpressionValue extends Expression {
 
     private double value;
 
-    public NodeValue(Node parent, double value, boolean uMinus) {
-        super(parent, uMinus);
+    public ExpressionValue(Expression parent, double value, boolean uMinus) {
+        super(parent, uMinus, ExpressionType.VALUE);
         this.value = value;
 
     }

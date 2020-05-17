@@ -1,26 +1,28 @@
 package com.crazydev.funnycircuits.electronic.math;
 
 import com.crazydev.funnycircuits.electronic.math.exceptions.ComputationException;
+import com.crazydev.funnycircuits.electronic.math.physic.ElectricElement;
 
 import java.util.ArrayList;
 
-public class NodeFunction extends Node {
+public class ExpressionFunction extends Expression {
 
     private String description = "";
 
-    private ArrayList<Node> nodes;
+    private ArrayList<Expression> nodes;
     private ArrayList<Character> operations;
 
-    private ArrayList<Node> nodesCopy;
+
+    private ArrayList<ExpressionValue> poolNodeValues;
+    private ArrayList<Expression> nodesCopy;
     private ArrayList<Character> operationsCopy;
 
-    private ArrayList<NodeValue> poolNodeValues;
-
     private boolean wasChanged = true;
+    private boolean containsMultipliersOnly = true;
 
 
-    public NodeFunction(Node parent, boolean uMinus) {
-        super(parent, uMinus);
+    public ExpressionFunction(Expression parent, boolean uMinus) {
+        super(parent, uMinus, ExpressionType.FUNCTION);
     }
 
     @Override
@@ -71,12 +73,12 @@ public class NodeFunction extends Node {
             operationsCopy.remove(operation);
 
             if (wasChanged) {
-                NodeValue nodeValue = new NodeValue(null, subRes, false);
+                ExpressionValue nodeValue = new ExpressionValue(null, subRes, false);
                 poolNodeValues.add(nodeValue);
                 nodesCopy.add(operation, nodeValue);
 
             } else {
-                NodeValue nodeValue = poolNodeValues.get(i);
+                ExpressionValue nodeValue = poolNodeValues.get(i);
                 nodeValue.setValue(subRes);
                 nodesCopy.add(operation, nodeValue);
             }
@@ -141,6 +143,57 @@ public class NodeFunction extends Node {
         }
     }
 
+    public Expression subtract(Expression expression) {
+
+        this.operations.add(MINUS);
+        this.nodes.add(expression);
+        this.containsMultipliersOnly = false;
+
+        return this;
+    }
+
+    public Expression add(Expression expression) {
+
+        this.operations.add(PLUS);
+        this.nodes.add(expression);
+        this.containsMultipliersOnly = false;
+
+        return this;
+    }
+
+    public Expression multiply(Expression e) {
+
+        if (this.containsMultipliersOnly) {
+            this.operations.add(MULTIPLY);
+            this.nodes.add(e);
+
+        } else {
+            ExpressionFunction expressionFunction = this.replaceFunctionIntoNew();
+            this.nodes.add(expressionFunction);
+            this.operations.add(MULTIPLY);
+            this.nodes.add(e);
+
+        }
+
+        return this;
+    }
+
+    public Expression devide(Expression e) {
+        if (this.containsMultipliersOnly) {
+            this.operations.add(DEVIDE);
+            this.nodes.add(e);
+
+        } else {
+            ExpressionFunction expressionFunction = this.replaceFunctionIntoNew();
+            this.nodes.add(expressionFunction);
+            this.operations.add(DEVIDE);
+            this.nodes.add(e);
+
+        }
+
+        return this;
+    }
+
     private int getHighestOperation() throws ComputationException {
 
         int prioritet = -1;
@@ -177,6 +230,38 @@ public class NodeFunction extends Node {
         return index;
 
     }
+
+    private ExpressionFunction replaceFunctionIntoNew() {
+        ExpressionFunction expressionFunction = new ExpressionFunction(this, false);
+
+        expressionFunction.nodes.addAll(this.nodes);
+        expressionFunction.operations.addAll(this.operations);
+
+        expressionFunction.description             = this.description;
+        expressionFunction.containsMultipliersOnly = this.containsMultipliersOnly;
+        expressionFunction.uMinus                  = this.uMinus;
+        expressionFunction.sign                    = this.sign;
+
+        // reset old function
+        this.nodes.clear();
+        this.operations.clear();
+        this.description = "";
+        this.containsMultipliersOnly = true;
+        this.uMinus                  = false;
+        this.sign                    = 1;
+
+        return expressionFunction;
+    }
+
+    public static ExpressionFunction createExpressionWithValue(double value) {
+
+        ExpressionFunction expressionFunction = new ExpressionFunction(null, false);
+        expressionFunction.nodes.add(new ExpressionValue(expressionFunction, value, false));
+        return expressionFunction;
+
+    }
+
+
 
 
 }

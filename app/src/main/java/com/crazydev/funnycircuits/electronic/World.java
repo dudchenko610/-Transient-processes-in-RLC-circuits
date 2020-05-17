@@ -4,6 +4,7 @@ import com.crazydev.funnycircuits.electronic.elements.Capacitor;
 import com.crazydev.funnycircuits.electronic.elements.DCSource;
 import com.crazydev.funnycircuits.electronic.elements.Inductor;
 import com.crazydev.funnycircuits.electronic.elements.Resistor;
+import com.crazydev.funnycircuits.electronic.math.Matrix;
 import com.crazydev.funnycircuits.electronic.structuresbuilding.Calculator;
 import com.crazydev.funnycircuits.io.Assets;
 import com.crazydev.funnycircuits.math.OverlapTester;
@@ -393,19 +394,29 @@ public class World {
         this.buildGraphs();
 
         Graph graph = this.graphs.get(m);
-        Circuit circuit = graph.circuits.get(n);
-
+     //   Circuit circuit = graph.circuits.get(n);
 
         Calculator calculator = new Calculator(graph);
-     //   calculator.calculate();
+      //  calculator.calculate();
 
 
-        for (Branch branch : circuit.branches) {
+    /*    for (Branch branch : circuit.branches) {
            for (Wire wire : branch.wires) {
                wire.select();
            }
-        }
+        }*/
 
+
+    }
+
+    public void underlineBranch(int n) {
+
+        this.buildGraphs();
+
+        Graph graph = this.graphs.get(0);
+
+        Matrix matrix = new Matrix(graph);
+        matrix.underlineBranch(n);
 
     }
 

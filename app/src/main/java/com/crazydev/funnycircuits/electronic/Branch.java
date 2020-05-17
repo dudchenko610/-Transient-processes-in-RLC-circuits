@@ -5,6 +5,12 @@ import android.util.Log;
 import com.crazydev.funnycircuits.electronic.elements.Capacitor;
 import com.crazydev.funnycircuits.electronic.elements.Inductor;
 import com.crazydev.funnycircuits.electronic.elements.Resistor;
+import com.crazydev.funnycircuits.electronic.math.ExpressionCurrent;
+import com.crazydev.funnycircuits.electronic.math.ExpressionInductance;
+import com.crazydev.funnycircuits.electronic.math.ExpressionVoltage;
+import com.crazydev.funnycircuits.electronic.math.physic.Capacity;
+import com.crazydev.funnycircuits.electronic.math.physic.Inductance;
+import com.crazydev.funnycircuits.electronic.math.physic.Resistance;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +19,9 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Branch {
+
+    public ExpressionCurrent expressionCurrent;
+    public ExpressionVoltage expressionVoltage;
 
     protected static int ID = 0;
     protected int hash_id   = 0;
@@ -25,11 +34,16 @@ public class Branch {
     public Node nodeB;
 
     public boolean inCircuit = false;
+
     private ArrayList<Character> wiresState = new ArrayList<Character>();
 
     public double current = 0;
 
     public boolean containsActiveElements = false;
+
+    public Resistance resistance;
+    public Capacity capacity;
+    public Inductance inductance;
 
     public Branch() {
         this.hash_id = ID ++;

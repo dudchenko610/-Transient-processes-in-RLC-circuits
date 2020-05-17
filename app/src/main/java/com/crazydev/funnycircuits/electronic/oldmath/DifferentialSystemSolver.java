@@ -124,6 +124,7 @@ public class DifferentialSystemSolver {
 
                 if (b.inCircuit) {
                     for (Wire wire : b.wires) {
+
                         if (wire.type == Wire.WireType.RESISTOR) {
                             Resistor resistor = ((Resistor) wire);
 

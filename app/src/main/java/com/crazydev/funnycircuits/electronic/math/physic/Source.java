@@ -2,7 +2,7 @@ package com.crazydev.funnycircuits.electronic.math.physic;
 
 import com.crazydev.funnycircuits.electronic.elements.DCSource;
 
-public class Source extends Element {
+public class Source extends ElectricElement {
 
     private DCSource source;
 

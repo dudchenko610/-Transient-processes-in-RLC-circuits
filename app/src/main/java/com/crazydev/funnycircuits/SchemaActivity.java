@@ -145,6 +145,7 @@ public class SchemaActivity extends AppCompatActivity implements
 
              //   openGLRenderer.getElectronicWorld().underlineBranch(m, n);
                 electronicWorld.underlineBranch(m, n);
+                electronicWorld.underlineBranch(n);
 
             }
         });

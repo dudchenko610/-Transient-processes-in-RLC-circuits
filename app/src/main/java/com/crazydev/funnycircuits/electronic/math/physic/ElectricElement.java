@@ -1,6 +1,6 @@
 package com.crazydev.funnycircuits.electronic.math.physic;
 
-public abstract class Element {
+public abstract class ElectricElement {
 
     protected double totalParameter = 0;
 
